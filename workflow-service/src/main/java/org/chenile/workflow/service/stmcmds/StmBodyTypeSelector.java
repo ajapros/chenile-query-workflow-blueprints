@@ -7,6 +7,7 @@ import org.chenile.stm.impl.STMActionsInfoProvider;
 import org.chenile.stm.model.EventInformation;
 import org.chenile.workflow.service.impl.StateEntityServiceImpl;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
 /**
@@ -24,10 +25,15 @@ import java.lang.reflect.Type;
  *
  */
 public class StmBodyTypeSelector implements Command<ChenileExchange>{
-	
+	private STMTransitionActionResolver stmTransitionActionResolver = null;
 	private final STMActionsInfoProvider stmActionsInfoProvider;
 	public StmBodyTypeSelector(STMActionsInfoProvider stmActionsInfoProvider) {
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
+	}
+	public StmBodyTypeSelector(STMActionsInfoProvider stmActionsInfoProvider,
+							   STMTransitionActionResolver stmTransitionActionResolver) {
+		this.stmActionsInfoProvider = stmActionsInfoProvider;
+		this.stmTransitionActionResolver = stmTransitionActionResolver;
 	}
 	
 	@Override
@@ -45,7 +51,40 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 				}
 				
 			});
+		}else {
+			checkIfPayloadTypeCanBeDerived(exchange,eventId);
 		}
 	}
 
+
+	/**
+	 *
+	 * @param exchange - the exchange to which we need to set the TypeReference of the body type
+	 * <p>This method works only if the eventID is the same as the name of the STMTransitionAction in
+	 * the bean factory. It only works if the STMTransitionAction extends {@link AbstractSTMTransitionAction}.
+	 * It computes the body type from the second argument of the {@link AbstractSTMTransitionAction#transitionTo} method that was
+	 * overridden by the transition action.</p>
+	 */
+	private void checkIfPayloadTypeCanBeDerived(ChenileExchange exchange, String eventId) {
+		if (stmTransitionActionResolver == null) return;
+		try{
+			Object bean = stmTransitionActionResolver.getBean(eventId);
+			if (bean == null) return;
+			if (!AbstractSTMTransitionAction.class.isAssignableFrom(bean.getClass()))return;
+			Method[] methods = bean.getClass().getDeclaredMethods();
+			for (Method m: methods){
+				System.out.println("Method is " + m + " isBridge is " + m.isBridge());
+				if (!m.getName().equals("transitionTo"))continue;
+				if (m.isBridge()) continue;
+				Type[] types = m.getGenericParameterTypes();
+				exchange.setBodyType(new TypeReference<Object>() {
+					@Override
+					public Type getType() {
+						return types[1];
+					}
+				});
+				}
+
+		}catch(Exception ignored){}
+	}
 }

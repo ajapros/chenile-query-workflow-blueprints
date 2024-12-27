@@ -5,8 +5,7 @@
 	<event-information eventId='resolve' meta-bodyType='org.chenile.workflow.param.MinimalPayload'/>
 	<event-information eventId='close' meta-bodyType='org.chenile.workflow.param.MinimalPayload'/>
 	<default-transition-action componentName="issueBaseTransitionAction"/>
-	<entry-action></entry-action>	
-	<flow id='test-flow' default='true'>
+	<flow id='ISSUES_FLOW' default='true'>
 		<entry-action componentName="issueEntryAction" />
 		<exit-action componentName="issueExitAction" />
 		<manual-state id='OPENED' initialState='true'>

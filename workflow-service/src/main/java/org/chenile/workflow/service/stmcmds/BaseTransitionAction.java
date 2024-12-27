@@ -18,10 +18,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BaseTransitionAction<T extends StateEntity> implements STMTransitionAction<T> {
-	//@Autowired
-	//private AuditLogger auditLogger ;
+	private STMTransitionActionResolver stmTransitionActionResolver = null;
 	@Autowired
 	private ApplicationContext applicationContext;
+	public BaseTransitionAction(){}
+	public BaseTransitionAction(STMTransitionActionResolver stmTransitionActionResolver){
+		this.stmTransitionActionResolver = stmTransitionActionResolver;
+	}
 
 	@Override
 	public final void doTransition(T entity, Object transitionParam, State startState, String eventId, State endState,
@@ -43,7 +46,7 @@ public class BaseTransitionAction<T extends StateEntity> implements STMTransitio
 			processMicroactions(metadata.get("orchestratedCommandsConfiguration"),context);
 			return;
 		}else {
-			transition(entity,transitionParam,startState, eventId,endState, stm);
+			transition(entity,transitionParam,startState, eventId,endState, stm,transition);
 			return;
 		}
 	}
@@ -72,9 +75,15 @@ public class BaseTransitionAction<T extends StateEntity> implements STMTransitio
 		return orchExecutor;
 	}
 
-	// Override this method instead of the doTransition method above. 
+	@SuppressWarnings("unchecked")
 	public void transition(T entity, Object transitionParam, State startState,String eventId, State endState,
-			STMInternalTransitionInvoker<?> stm) throws Exception {
+			STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
+		if (stmTransitionActionResolver == null) return;
+		STMTransitionAction<T> action = (STMTransitionAction<T>) stmTransitionActionResolver.getBean(eventId);
+		if (action != null) {
+			action.doTransition(entity,transitionParam,startState,eventId,endState,
+					stm,transition);
+		}
 	}
 
 }
