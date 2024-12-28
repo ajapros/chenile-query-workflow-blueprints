@@ -15,6 +15,8 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
                 eventId, endState,  stm, transition);
     }
 
-    public abstract void transitionTo(StateEntityType stateEntity, PayloadType transitionParam, State startState, String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) ;
+    public abstract void transitionTo(StateEntityType stateEntity,
+              PayloadType transitionParam, State startState, String eventId, State endState,
+              STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception;
 
 }
