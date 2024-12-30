@@ -43,6 +43,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.chenile</groupId>
+			<artifactId>cucumber-workflow-utils</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.junit.vintage</groupId>
 			<artifactId>junit-vintage-engine</artifactId>
 			<scope>test</scope>

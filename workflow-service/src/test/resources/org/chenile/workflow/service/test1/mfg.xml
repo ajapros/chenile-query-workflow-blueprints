@@ -1,18 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<!--
+    This state diagram mirrors a complex manufacturing process using two trivial steps.
+     It consists of the following Steps:
+ 		1. IN_ASSEMBLY_LINE
+ 		2. OUT_OF_ASSEMBLY_LINE
+	The transitions between the start INITIATED state and to IN_ASSEMBLY_LINE and OUT_OF_ASSEMBLY_LINE are
+	simple state transitions. We don't capture the entire manufacturing details since it is assumed to be
+	done elsewhere.
+	However, after the product has been manufactured, we capture testing activities before the product
+	transitions to "READY" state. These are captured as concurrent activities which are controlled by the
+	State diagram. All mandatory activities must be completed before the product transitions to READY state.
+	The "AreActivitiesCompleted" auto state makes sure that all mandatory activities are completed.
+-->
 <states>
 	<default-transition-action componentName="mfgBaseTransitionAction"/>
+	<enablement-strategy componentName="mfgConfigBasedEnablementStrategy"/>
 	<flow id='MFG_FLOW' default='true'>
 		<entry-action componentName="mfgEntryAction" />
 		<exit-action componentName="mfgExitAction" />
 		<manual-state id='INITIATED' initialState='true'>
-			<on eventId="doS1" newStateId="S1"/>
+			<on eventId="putInAssemblyLine" newStateId="IN_ASSEMBLY_LINE"/>
 		</manual-state>
 
-		<manual-state id='S1'>
-			<on eventId="doS2" newStateId="S2"/>
+		<manual-state id='IN_ASSEMBLY_LINE'>
+			<on eventId="finishManufacturing" newStateId="OUT_OF_ASSEMBLY_LINE"/>
 		</manual-state>
-		<manual-state id='S2'/>
+		<manual-state id='OUT_OF_ASSEMBLY_LINE'>
+			<on eventId="testByExperts" newStateId="AreOutOfAssemblyLineActivitiesComplete"
+					meta-activity="MANDATORY"/>
+			<on eventId="testByEndUsers" newStateId="AreOutOfAssemblyLineActivitiesComplete"
+				meta-activity="MANDATORY"/>
+			<on eventId="checkIfPaintOk" newStateId="AreOutOfAssemblyLineActivitiesComplete"
+				meta-activity="OPTIONAL"/>
+		</manual-state>
+		<auto-state id="AreOutOfAssemblyLineActivitiesComplete"
+					componentName="areOutOfAssemblyLineActivitiesComplete">
+			<on eventId="no" newStateId="OUT_OF_ASSEMBLY_LINE"/>
+			<on eventId="yes" newStateId="READY"/>
+		</auto-state>
+		<manual-state id="READY"/>
 	</flow>
 	
 </states>

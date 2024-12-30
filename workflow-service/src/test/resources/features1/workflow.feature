@@ -1,6 +1,6 @@
 Feature: Tests the Chenile Workflow Service using a REST client. A mfg service exists and is under test.
 It helps to create a MfgModel and manages the state of the MfgModel as follows:
-INITIATED -(doS1) -> S1 -> (doS2) -> S2
+INITIATED -(putInAssemblyLine) -> IN_ASSEMBLY_LINE -> (finishManufacturing) -> OUT_OF_ASSEMBLY_LINE
  
   Scenario: Test create MfgModel
     When I POST a REST request to URL "/mfg" with payload
@@ -18,9 +18,10 @@ INITIATED -(doS1) -> S1 -> (doS2) -> S2
 	  And the REST response key "mutatedEntity.id" is "${id}"
 	  And the REST response key "mutatedEntity.currentState.stateId" is "INITIATED"
 
-  Scenario: Perform step doS1 on the mfgModel with comments
-    Given that "comment" equals "Performed S1"
-    When I PATCH a REST request to URL "/mfg/${id}/doS1" with payload
+  Scenario: Perform step putInAssemblyLine on the mfgModel with comments
+    Given that "comment" equals "Dispatched to factory for manufacturing"
+    And that "event" equals "putInAssemblyLine"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
       """json
       {
           "comment": "${comment}"
@@ -28,21 +29,93 @@ INITIATED -(doS1) -> S1 -> (doS2) -> S2
       """
     Then the REST response contains key "mutatedEntity"
     And the REST response key "mutatedEntity.id" is "${id}"
-    And the REST response key "mutatedEntity.currentState.stateId" is "S1"
-    And the REST response key "mutatedEntity.comments.doS1" is "${comment}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "IN_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.comments.putInAssemblyLine" is "${comment}"
 
-  Scenario: Perform step doS2 on the mfgModel with comments
-    Given that "comment" equals "Performed S2"
-    And that "s2Strategy" equals "s2 strategy"
-    When I PATCH a REST request to URL "/mfg/${id}/doS2" with payload
+  Scenario: Perform step finishManufacturing on the mfgModel with comments. Also supply a modelType.
+    Given that "comment" equals "Finished manufacturing a RETRO model"
+    And that "modelType" equals "RETRO"
+    And that "event" equals "finishManufacturing"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
       """json
       {
           "comment": "${comment}",
-          "s2Strategy": "${s2Strategy}"
+          "modelType": "${modelType}"
       }
       """
     Then the REST response contains key "mutatedEntity"
     And the REST response key "mutatedEntity.id" is "${id}"
-    And the REST response key "mutatedEntity.currentState.stateId" is "S2"
-    And the REST response key "mutatedEntity.comments.doS2" is "${comment}"
-    And the REST response key "mutatedEntity.s2Strategy" is "${s2Strategy}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "OUT_OF_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.comments.finishManufacturing" is "${comment}"
+    And the REST response key "mutatedEntity.modelType" is "${modelType}"
+
+  Scenario: Perform activity testByExperts on the mfgModel with comments.
+    Given that "comment" equals "Expert Robert Brown tested the model successfully."
+    And that "event" equals "testByExperts"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "OUT_OF_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+     | key     | value         |
+     | name    | ${event}      |
+     | comment | ${comment}    |
+
+  Scenario: Perform optional activity checkIfPaintOk on the mfgModel with comments. This will not affect the state of the state entity.
+    Given that "comment" equals "The painting job was great."
+    And that "event" equals "checkIfPaintOk"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "OUT_OF_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key     | value         |
+      | name    | ${event}      |
+      | comment | ${comment}    |
+
+  Scenario: Add a new mandatory activity performSafetyInspection for the OUT_OF_ASSEMBLY_LINE state.
+  Send safetyInspection event on the mfgModel with comments. This will not affect the state of the state entity.
+    Given that config strategy is "mfgConfigProvider"
+    And that a new mandatory activity "performSafetyInspection" is added from state "OUT_OF_ASSEMBLY_LINE" to state "AreOutOfAssemblyLineActivitiesComplete" in flow "MFG_FLOW"
+    And that "comment" equals "Product passes all safety inspections."
+    And that "event" equals "performSafetyInspection"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "OUT_OF_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key     | value         |
+      | name    | ${event}      |
+      | comment | ${comment}    |
+
+  Scenario: Perform activity testByEndUsers on the mfgModel with comments.
+    Given that "comment" equals "End user Joe found that the system is working satisfactorily."
+    And that "event" equals "testByEndUsers"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "READY"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key      | value       |
+      | name     | ${event}    |
+      | comment  | ${comment}  |

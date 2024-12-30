@@ -73,7 +73,6 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 			if (!AbstractSTMTransitionAction.class.isAssignableFrom(bean.getClass()))return;
 			Method[] methods = bean.getClass().getDeclaredMethods();
 			for (Method m: methods){
-				System.out.println("Method is " + m + " isBridge is " + m.isBridge());
 				if (!m.getName().equals("transitionTo"))continue;
 				if (m.isBridge()) continue;
 				Type[] types = m.getGenericParameterTypes();

@@ -1,14 +1,19 @@
 package org.chenile.workflow.service.test1.mfg;
 
-import org.chenile.stm.State;
 import org.chenile.utils.entity.model.AbstractExtendedStateEntity;
+import org.chenile.workflow.activities.model.ActivityEnabledStateEntity;
+import org.chenile.workflow.activities.model.ActivityLog;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-public class MfgModel extends AbstractExtendedStateEntity {
+public class MfgModel extends AbstractExtendedStateEntity implements ActivityEnabledStateEntity {
     public Map<String,String> comments = new HashMap<>();
-    // record specific information about S2. In this case we are recording some specific strategy
-    // the S2 transition action needs to capture and update the strategy
-    public String s2Strategy;
+    // Capture if the model type is RETRO or MODERN.
+    public String modelType;
+    public Collection<ActivityLog> activities = new ArrayList<>();
+
+    @Override
+    public Collection<ActivityLog> obtainActivities() {
+        return activities;
+    }
 }

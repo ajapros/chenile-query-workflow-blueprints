@@ -1,18 +1,19 @@
 package org.chenile.workflow.service.test1;
 
 
+import org.chenile.stm.ConfigProvider;
 import org.chenile.stm.STM;
+import org.chenile.stm.STMFlowStore;
+import org.chenile.stm.State;
 import org.chenile.stm.action.STMTransitionAction;
-import org.chenile.stm.impl.BeanFactoryAdapter;
-import org.chenile.stm.impl.STMActionsInfoProvider;
-import org.chenile.stm.impl.STMFlowStoreImpl;
-import org.chenile.stm.impl.STMImpl;
-import org.chenile.stm.impl.XmlFlowReader;
+import org.chenile.stm.impl.*;
 import org.chenile.stm.spring.SpringBeanFactoryAdapter;
 import org.chenile.workflow.param.MinimalPayload;
+import org.chenile.workflow.service.activities.ActivityChecker;
+import org.chenile.workflow.service.activities.AreActivitiesComplete;
 import org.chenile.workflow.service.impl.StateEntityServiceImpl;
 import org.chenile.workflow.service.stmcmds.*;
-import org.chenile.workflow.service.test1.cmds.PerformS2;
+import org.chenile.workflow.service.test1.cmds.FinishManufacturing;
 import org.chenile.workflow.service.test1.cmds.PerformStep;
 import org.chenile.workflow.service.test1.mfg.MfgEntityStore;
 import org.chenile.workflow.service.test1.mfg.MfgModel;
@@ -101,13 +102,32 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 		return new BaseTransitionAction<>(stmTransitionActionResolver);
 	}
 
+	@Bean ActivityChecker mfgActivitiesChecker(@Qualifier("mfgFlowStore") STMFlowStore stmFlowStore){
+		return new ActivityChecker(stmFlowStore);
+	}
+
+	@Bean
+	AreActivitiesComplete areOutOfAssemblyLineActivitiesComplete(@Qualifier("mfgActivitiesChecker") ActivityChecker activityChecker){
+		return new AreActivitiesComplete(activityChecker, new State("OUT_OF_ASSEMBLY_LINE", "MFG_FLOW"));
+	}
+
+	@Bean ConfigProviderImpl mfgConfigProvider() {
+		return new ConfigProviderImpl();
+	}
+
+	@Bean ConfigBasedEnablementStrategy mfgConfigBasedEnablementStrategy(
+			@Qualifier("mfgConfigProvider") ConfigProvider configProvider) {
+		return new ConfigBasedEnablementStrategy(configProvider);
+	}
+
+
 	// Create the specific transition actions here. To automatically wire them into the STM
 	// use the convention of "mfg" + eventId for the method name. (mfg is the prefix passed to the
 	// TransitionActionResolver above.) This will ensure that these are detected automatically by the
 	// Workflow system. The payload types will be detected as well so that there is no need to
 	// introduce an <event-information/> segment in the mfg.xml
-	@Bean STMTransitionAction<MfgModel> mfgDoS2() {
-		return new PerformS2();
+	@Bean STMTransitionAction<MfgModel> mfgFinishManufacturing() {
+		return new FinishManufacturing();
 	}
 }
 
