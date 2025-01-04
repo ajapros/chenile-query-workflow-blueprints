@@ -119,3 +119,59 @@ INITIATED -(putInAssemblyLine) -> IN_ASSEMBLY_LINE -> (finishManufacturing) -> O
       | key      | value       |
       | name     | ${event}    |
       | comment  | ${comment}  |
+
+
+  Scenario: Perform sales activity invoice on the mfgModel with comments.
+    Given that "comment" equals "Product Invoiced to ABC company which wants to buy it."
+    And that "event" equals "invoice"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "READY"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key      | value       |
+      | name     | ${event}    |
+      | comment  | ${comment}  |
+
+  Scenario: Perform sales activity pickUp on the mfgModel with comments.
+  Before that add a "ship" activity to the READY stage. The auto state has to wait till both the
+  activities are complete.
+    Given that config strategy is "mfgConfigProvider"
+    And that a new mandatory activity "ship" is added from state "READY" to state "AreSalesActivitiesComplete" in flow "MFG_FLOW"
+    And that "comment" equals "Product picked up by the representative of ABC company."
+    And that "event" equals "pickUp"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "READY"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key      | value       |
+      | name     | ${event}    |
+      | comment  | ${comment}  |
+
+  Scenario: Perform sales activity ship on the mfgModel with comments.
+    And that "comment" equals "Product picked up by the representative of ABC company."
+    And that "event" equals "ship"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "SOLD"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key      | value       |
+      | name     | ${event}    |
+      | comment  | ${comment}  |

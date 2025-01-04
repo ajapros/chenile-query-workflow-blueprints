@@ -1,44 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    This state diagram mirrors a complex manufacturing process using two trivial steps.
+    This state diagram mirrors a complex manufacturing process using some trivial steps.
      It consists of the following Steps:
- 		1. IN_ASSEMBLY_LINE
- 		2. OUT_OF_ASSEMBLY_LINE
-	The transitions between the start INITIATED state and to IN_ASSEMBLY_LINE and OUT_OF_ASSEMBLY_LINE are
+ 		1. INITIATED
+ 		2. IN_ASSEMBLY_LINE
+ 		3. OUT_OF_ASSEMBLY_LINE
+ 		4. READY
+ 		5. SOLD
+	The transitions between the INITIATED state and to IN_ASSEMBLY_LINE and OUT_OF_ASSEMBLY_LINE are
 	simple state transitions. We don't capture the entire manufacturing details since it is assumed to be
 	done elsewhere.
 	However, after the product has been manufactured, we capture testing activities before the product
 	transitions to "READY" state. These are captured as concurrent activities which are controlled by the
 	State diagram. All mandatory activities must be completed before the product transitions to READY state.
-	The "AreActivitiesCompleted" auto state makes sure that all mandatory activities are completed.
+	The "AreActivitiesCompleted" auto state makes sure that all mandatory activities are completed.<br/>
+	This test also tests enablement strategy. Some new mandatory activities are introduced dynamically
+	to see if the auto state is able to detect these new activities and make sure that it waits till they
+	are also complete. <br/>
+	After the product is ready then it goes through a sale cycle. There are activities that need to be
+	performed before it is considered SOLD.<br/>
 -->
 <states>
 	<default-transition-action componentName="mfgBaseTransitionAction"/>
 	<enablement-strategy componentName="mfgConfigBasedEnablementStrategy"/>
+	<add-transition-tag tag="mandatory-ooa-activity" newStateId="AreOutOfAssemblyLineActivitiesComplete"
+			meta-activity="MANDATORY" eventIdTag="id"/>
+	<add-transition-tag tag="optional-ooa-activity" newStateId="AreOutOfAssemblyLineActivitiesComplete"
+						meta-activity="OPTIONAL"  eventIdTag="id"/>
+	<add-transition-tag tag="mandatory-activity" meta-activity="MANDATORY" eventIdTag="id"/>
+	<add-transition-tag tag="optional-activity" meta-activity="OPTIONAL" eventIdTag="id"/>
+	<add-transition-tag tag="mandatory-sales-activity" newStateId="AreSalesActivitiesComplete"
+						meta-activity="MANDATORY" eventIdTag="id"/>
+	<add-state-tag tag="stage" manualState="true"/>
+	<add-state-tag tag="activities-completion-check" componentName="activitiesCompletionCheck"
+				   eventIdTag="id" />
+	<add-transition-tag tag="on-completion" newStateIdTag="goto" eventId="yes"/>
+	<add-transition-tag tag="if-not-complete" newStateIdTag="stay-in" eventId="no"/>
 	<flow id='MFG_FLOW' default='true'>
 		<entry-action componentName="mfgEntryAction" />
 		<exit-action componentName="mfgExitAction" />
-		<manual-state id='INITIATED' initialState='true'>
+		<stage id='INITIATED' initialState='true'>
 			<on eventId="putInAssemblyLine" newStateId="IN_ASSEMBLY_LINE"/>
-		</manual-state>
+		</stage>
 
-		<manual-state id='IN_ASSEMBLY_LINE'>
+		<stage id='IN_ASSEMBLY_LINE'>
 			<on eventId="finishManufacturing" newStateId="OUT_OF_ASSEMBLY_LINE"/>
-		</manual-state>
-		<manual-state id='OUT_OF_ASSEMBLY_LINE'>
-			<on eventId="testByExperts" newStateId="AreOutOfAssemblyLineActivitiesComplete"
-					meta-activity="MANDATORY"/>
-			<on eventId="testByEndUsers" newStateId="AreOutOfAssemblyLineActivitiesComplete"
-				meta-activity="MANDATORY"/>
-			<on eventId="checkIfPaintOk" newStateId="AreOutOfAssemblyLineActivitiesComplete"
-				meta-activity="OPTIONAL"/>
-		</manual-state>
+		</stage>
+		<stage id='OUT_OF_ASSEMBLY_LINE'>
+			<mandatory-ooa-activity id="testByExperts" />
+			<mandatory-ooa-activity id="testByEndUsers" />
+			<optional-ooa-activity  id="checkIfPaintOk" />
+		</stage>
 		<auto-state id="AreOutOfAssemblyLineActivitiesComplete"
 					componentName="areOutOfAssemblyLineActivitiesComplete">
-			<on eventId="no" newStateId="OUT_OF_ASSEMBLY_LINE"/>
-			<on eventId="yes" newStateId="READY"/>
+			<if-not-complete stay-in="OUT_OF_ASSEMBLY_LINE"/>
+			<on-completion goto="READY"/>
 		</auto-state>
-		<manual-state id="READY"/>
+		<stage id="READY">
+			<mandatory-sales-activity id="invoice"/>
+			<mandatory-sales-activity id="pickUp"/>
+		</stage>
+		<activities-completion-check id="AreSalesActivitiesComplete" whichStateId="READY">
+			<if-not-complete stay-in="READY"/>
+			<on-completion goto="SOLD"/>
+		</activities-completion-check>
+		<stage id="SOLD"/>
 	</flow>
-	
 </states>

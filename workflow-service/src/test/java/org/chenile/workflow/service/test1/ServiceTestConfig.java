@@ -111,6 +111,9 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 		return new AreActivitiesComplete(activityChecker, new State("OUT_OF_ASSEMBLY_LINE", "MFG_FLOW"));
 	}
 
+	@Bean AreActivitiesComplete activitiesCompletionCheck(@Qualifier("mfgActivitiesChecker") ActivityChecker activityChecker) {
+		return new AreActivitiesComplete(activityChecker);
+	}
 	@Bean ConfigProviderImpl mfgConfigProvider() {
 		return new ConfigProviderImpl();
 	}
