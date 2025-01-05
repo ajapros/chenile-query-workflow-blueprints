@@ -62,6 +62,7 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 				throw new ErrorNumException(422, 6001, new Object[] {event,entity.getCurrentState().getStateId()});
 			}else {
 				if (e instanceof ErrorNumException ene) throw ene;
+				e.printStackTrace();
 				throw new ErrorNumException(500,6002,new Object[] {e.getMessage(), event},e);
 			}
 		}

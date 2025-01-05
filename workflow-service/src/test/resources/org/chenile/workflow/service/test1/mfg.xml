@@ -18,7 +18,9 @@
 	to see if the auto state is able to detect these new activities and make sure that it waits till they
 	are also complete. <br/>
 	After the product is ready then it goes through a sale cycle. There are activities that need to be
-	performed before it is considered SOLD.<br/>
+	performed before it is considered SOLD. This works in the same way as the previous state. However,
+	we use the component property feature of the AreActivitiesCompleted component here instead of
+	using the Spring constructor injection as was done with the READY check auto state.<br/>
 -->
 <states>
 	<default-transition-action componentName="mfgBaseTransitionAction"/>
@@ -32,16 +34,18 @@
 	<add-transition-tag tag="mandatory-sales-activity" newStateId="AreSalesActivitiesComplete"
 						meta-activity="MANDATORY" eventIdTag="id"/>
 	<add-state-tag tag="stage" manualState="true"/>
-	<add-state-tag tag="activities-completion-check" componentName="activitiesCompletionCheck"
-				   eventIdTag="id" />
+	<add-state-tag tag="activities-completion-check" componentName="activitiesCompletionCheck"/>
+	<add-state-tag tag="sales-activities-completion-check" componentName="activitiesCompletionCheck"
+				   id="AreSalesActivitiesComplete" whichStateId="READY"/>
+	<add-state-tag tag="first-stage" id="INITIATED" initialState="true" manualState="true"/>
 	<add-transition-tag tag="on-completion" newStateIdTag="goto" eventId="yes"/>
 	<add-transition-tag tag="if-not-complete" newStateIdTag="stay-in" eventId="no"/>
 	<flow id='MFG_FLOW' default='true'>
 		<entry-action componentName="mfgEntryAction" />
 		<exit-action componentName="mfgExitAction" />
-		<stage id='INITIATED' initialState='true'>
+		<first-stage>
 			<on eventId="putInAssemblyLine" newStateId="IN_ASSEMBLY_LINE"/>
-		</stage>
+		</first-stage>
 
 		<stage id='IN_ASSEMBLY_LINE'>
 			<on eventId="finishManufacturing" newStateId="OUT_OF_ASSEMBLY_LINE"/>
@@ -60,10 +64,10 @@
 			<mandatory-sales-activity id="invoice"/>
 			<mandatory-sales-activity id="pickUp"/>
 		</stage>
-		<activities-completion-check id="AreSalesActivitiesComplete" whichStateId="READY">
+		<sales-activities-completion-check >
 			<if-not-complete stay-in="READY"/>
 			<on-completion goto="SOLD"/>
-		</activities-completion-check>
+		</sales-activities-completion-check>
 		<stage id="SOLD"/>
 	</flow>
 </states>
