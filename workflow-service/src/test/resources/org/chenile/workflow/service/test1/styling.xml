@@ -1,0 +1,6 @@
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>File that allows stm-cli to style the mfg.xml with the correct colors</comment>
+    <entry key="activity==MANDATORY">[thickness=3,#blue]</entry>
+    <entry key="activity==OPTIONAL">[thickness=3,#LightBlue]</entry>
+</properties>

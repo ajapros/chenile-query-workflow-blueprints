@@ -16,4 +16,14 @@ public class MfgModel extends AbstractExtendedStateEntity implements ActivityEna
     public Collection<ActivityLog> obtainActivities() {
         return activities;
     }
+
+    @Override
+    public ActivityLog addActivity(String eventId,String comment) {
+        ActivityLogImpl activityLog = new ActivityLogImpl();
+        activityLog.success = true;
+        activityLog.name = eventId;
+        activityLog.comment = comment;
+        activities.add(activityLog);
+        return activityLog;
+    }
 }

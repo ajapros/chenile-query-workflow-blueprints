@@ -9,7 +9,7 @@ INITIATED -(putInAssemblyLine) -> IN_ASSEMBLY_LINE -> (finishManufacturing) -> O
 	}
 	"""
     Then the REST response contains key "mutatedEntity"
-    And store "$.payload.mutatedEntity.id" from  response to "id"
+    And store "$.payload.mutatedEntity.id" from response to "id"
     And the REST response key "mutatedEntity.currentState.stateId" is "INITIATED"
 	  
 	Scenario: Retrieve the MfgModel that just got created
@@ -31,6 +31,74 @@ INITIATED -(putInAssemblyLine) -> IN_ASSEMBLY_LINE -> (finishManufacturing) -> O
     And the REST response key "mutatedEntity.id" is "${id}"
     And the REST response key "mutatedEntity.currentState.stateId" is "IN_ASSEMBLY_LINE"
     And the REST response key "mutatedEntity.comments.putInAssemblyLine" is "${comment}"
+
+  Scenario: Perform step finishManufacturing on the mfgModel with comments. Also supply a modelType.
+    Given that "comment" equals "Finished manufacturing a RETRO model"
+    And that "modelType" equals "RETRO"
+    And that "event" equals "finishManufacturing"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}",
+          "modelType": "${modelType}"
+      }
+      """
+    Then the REST response does not contain key "mutatedEntity"
+    And success is false
+    And the http status code is 400
+    And the top level subErrorCode is 49000
+
+  Scenario: Perform activity build on the mfgModel with comments.
+    Given that "comment" equals "Building the model."
+    And that "event" equals "build"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "IN_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key     | value         |
+      | name    | ${event}      |
+      | comment | ${comment}    |
+
+  Scenario: Perform activity fine-tune on the mfgModel with comments.
+    Given that "comment" equals "Fine tuning the configurations."
+    And that "event" equals "fine-tune"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "IN_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key     | value         |
+      | name    | ${event}      |
+      | comment | ${comment}    |
+
+
+  Scenario: Perform activity inAssemblyTesting on the mfgModel with comments.
+    Given that "comment" equals "Testing the model in the assembly line."
+    And that "event" equals "inAssemblyTesting"
+    When I PATCH a REST request to URL "/mfg/${id}/${event}" with payload
+      """json
+      {
+          "comment": "${comment}"
+      }
+      """
+    Then the REST response contains key "mutatedEntity"
+    And the REST response key "mutatedEntity.id" is "${id}"
+    And the REST response key "mutatedEntity.currentState.stateId" is "IN_ASSEMBLY_LINE"
+    And the REST response key "mutatedEntity.activities" collection has an item with keys and values:
+      | key     | value         |
+      | name    | ${event}      |
+      | comment | ${comment}    |
 
   Scenario: Perform step finishManufacturing on the mfgModel with comments. Also supply a modelType.
     Given that "comment" equals "Finished manufacturing a RETRO model"

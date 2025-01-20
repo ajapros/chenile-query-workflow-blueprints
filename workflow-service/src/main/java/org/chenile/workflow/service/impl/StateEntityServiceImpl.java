@@ -11,7 +11,6 @@ import org.chenile.utils.entity.service.EntityStore;
 import org.chenile.workflow.api.StateEntityService;
 import org.chenile.workflow.dto.StateEntityServiceResponse;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -59,11 +58,14 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 			if (e instanceof STMException && 
 					(((STMException)e).getMessageId() == STMException.INVALID_EVENTID ||
 					((STMException)e).getMessageId() == STMException.INVALID_TRANSITION)) {
-				throw new ErrorNumException(422, 6001, new Object[] {event,entity.getCurrentState().getStateId()});
+				throw new ErrorNumException(422, 6001,
+						"Invalid event or transition: Error = " + e.getMessage());
 			}else {
 				if (e instanceof ErrorNumException ene) throw ene;
 				e.printStackTrace();
-				throw new ErrorNumException(500,6002,new Object[] {e.getMessage(), event},e);
+				throw new ErrorNumException(500,6002,
+						"Unknown happened in invoking event " + event + " in entity for current state = "
+						+ entity.getCurrentState() + " . Error message = " + e.getMessage(),e);
 			}
 		}
 	}

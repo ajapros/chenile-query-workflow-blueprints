@@ -47,7 +47,7 @@ public class ActivityChecker {
         for (Transition transition: transitions.values()){
             Map<String,String> metadata = transition.getMetadata();
             ActivityType type = getActivityType(metadata);
-            if(type == ActivityType.NONE) continue;
+            if(type == ActivityType.NONE || type == ActivityType.COMPLETION_CHECKER) continue;
             if (type == ActivityType.MANDATORY &&
                     !isActivityComplete(transition.getEventId(), stateEntity)){
                 return false;
@@ -65,8 +65,8 @@ public class ActivityChecker {
     private boolean isActivityComplete(String eventId,
                    ActivityEnabledStateEntity stateEntity) {
         for(ActivityLog activityLog: stateEntity.obtainActivities()){
-            if (activityLog.name().equals(eventId))
-                return activityLog.success();
+            if (activityLog.getName().equals(eventId))
+                return activityLog.getSuccess();
         }
         return false;
     }
@@ -75,7 +75,9 @@ public class ActivityChecker {
         String activity = metadata.get(ACTIVITY_DATA_NAME);
         if (activity == null) return ActivityType.NONE;
         if (activity.equals(ActivityType.MANDATORY.name())) return ActivityType.MANDATORY;
-        return ActivityType.OPTIONAL;
+        else if (activity.equals(ActivityType.OPTIONAL.name())) return ActivityType.OPTIONAL;
+        else if (activity.equals(ActivityType.COMPLETION_CHECKER.name())) return ActivityType.COMPLETION_CHECKER;
+        return ActivityType.NONE;
     }
 
     public boolean isMandatoryActivity(ActivityEnabledStateEntity stateEntity,
@@ -83,13 +85,31 @@ public class ActivityChecker {
         State state = stateEntity.getCurrentState();
         StateDescriptor sd = stmFlowStore.getStateInfo(state);
         Transition transition = sd.getTransitions().get(eventId);
+        return isMandatoryActivity(transition);
+    }
+    public boolean isMandatoryActivity(Transition transition){
         return getActivityType(transition.getMetadata()) == ActivityType.MANDATORY;
     }
+    public boolean isCompletionChecker(ActivityEnabledStateEntity stateEntity,
+                                       String eventId){
+        State state = stateEntity.getCurrentState();
+        StateDescriptor sd = stmFlowStore.getStateInfo(state);
+        Transition transition = sd.getTransitions().get(eventId);
+        return isCompletionChecker(transition);
+    }
+    public boolean isCompletionChecker(Transition transition){
+        return getActivityType(transition.getMetadata()) == ActivityType.COMPLETION_CHECKER;
+    }
+
     public boolean isOptionalActivity(ActivityEnabledStateEntity stateEntity,
                                        String eventId){
         State state = stateEntity.getCurrentState();
         StateDescriptor sd = stmFlowStore.getStateInfo(state);
         Transition transition = sd.getTransitions().get(eventId);
+        return isOptionalActivity(transition);
+    }
+
+    public boolean isOptionalActivity(Transition transition){
         return getActivityType(transition.getMetadata()) == ActivityType.OPTIONAL;
     }
     public boolean isActivity(ActivityEnabledStateEntity stateEntity,
@@ -97,7 +117,11 @@ public class ActivityChecker {
         State state = stateEntity.getCurrentState();
         StateDescriptor sd = stmFlowStore.getStateInfo(state);
         Transition transition = sd.getTransitions().get(eventId);
-        return getActivityType(transition.getMetadata()) != ActivityType.NONE;
+        return isActivity(transition);
+    }
+    public boolean isActivity(Transition transition){
+        ActivityType activityType =  getActivityType(transition.getMetadata());
+        return (activityType != ActivityType.NONE && activityType != ActivityType.COMPLETION_CHECKER);
     }
 
 }

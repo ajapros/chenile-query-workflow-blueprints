@@ -1,5 +1,6 @@
 package org.chenile.workflow.service.stmcmds;
 
+import org.chenile.base.exception.BadRequestException;
 import org.chenile.owiz.BeanFactoryAdapter;
 import org.chenile.owiz.Command;
 import org.chenile.owiz.OrchExecutor;
@@ -10,6 +11,10 @@ import org.chenile.stm.State;
 import org.chenile.stm.StateEntity;
 import org.chenile.stm.action.STMTransitionAction;
 import org.chenile.stm.model.Transition;
+import org.chenile.workflow.activities.model.ActivityEnabledStateEntity;
+import org.chenile.workflow.activities.model.ActivityLog;
+import org.chenile.workflow.param.MinimalPayload;
+import org.chenile.workflow.service.activities.ActivityChecker;
 import org.chenile.workflow.service.stmcmds.dto.TransitionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -17,14 +22,35 @@ import org.springframework.context.ApplicationContext;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * {@link org.chenile.stm.STM} supports a default transition action. If an event is not mapped to an
+ * {@link STMTransitionAction} then the default transition action is invoked.
+ * <p>This class is a good candidate to act as the default transition action. It provides the following
+ * functionality:</p>
+ * <p>It can provide a bridge to the OWIZ framework. If an OWIZ {@link Command} is configured or an
+ * OWIZ {@link OrchExecutor} is configured in the metadata of the transition, then those are invoked.
+ * It also supports if an OWIZ XML is specified. It instantiates the OrchExecutor based on the XML
+ * and executes the OrchExecutor.</p>
+ * <p>If an {@link ActivityChecker} is injected into this command, then it can log all MANDATORY
+ * and OPTIONAL activities. It can also check that all activities are completed if the transition
+ * is of type COMPLETION_CHECKER.</p>
+ * <p>It can invoke a default transition command if injected with an {@link STMTransitionActionResolver}.
+ * The resolver provides a component without it being specified as a componentName in the transition.</p>
+ * @param <T> - the state entity
+ */
 public class BaseTransitionAction<T extends StateEntity> implements STMTransitionAction<T> {
 	private STMTransitionActionResolver stmTransitionActionResolver = null;
 	@Autowired
 	private ApplicationContext applicationContext;
+	/**
+	 * This field needs to be set to enable activity management. Else it defaults to doing nothing.
+	 */
+	public ActivityChecker activityChecker;
 	public BaseTransitionAction(){}
 	public BaseTransitionAction(STMTransitionActionResolver stmTransitionActionResolver){
 		this.stmTransitionActionResolver = stmTransitionActionResolver;
 	}
+
 
 	@Override
 	public final void doTransition(T entity, Object transitionParam, State startState, String eventId, State endState,
@@ -78,6 +104,7 @@ public class BaseTransitionAction<T extends StateEntity> implements STMTransitio
 	@SuppressWarnings("unchecked")
 	public void transition(T entity, Object transitionParam, State startState,String eventId, State endState,
 			STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
+		if(activityChecker != null) doActivityManagement(entity,transitionParam,startState,eventId,transition);
 		if (stmTransitionActionResolver == null) return;
 		STMTransitionAction<T> action = (STMTransitionAction<T>) stmTransitionActionResolver.getBean(eventId);
 		if (action != null) {
@@ -85,5 +112,19 @@ public class BaseTransitionAction<T extends StateEntity> implements STMTransitio
 					stm,transition);
 		}
 	}
+
+	private void doActivityManagement(T entity, Object transitionParam, State startState, String eventId, Transition transition) {
+		if (! (entity instanceof ActivityEnabledStateEntity aese)) return;
+		if(activityChecker.isActivity(transition)){
+			String comment = null;
+			if (transitionParam instanceof MinimalPayload minimalPayload)
+				comment = minimalPayload.getComment();
+			aese.addActivity(eventId,comment);
+		}
+		if (activityChecker.isCompletionChecker(transition) &&
+					!activityChecker.areAllActivitiesComplete(aese,startState))
+			throw new BadRequestException(49000,
+					"Transition " + eventId + " cannot be invoked without completing all the mandatory activities");
+    }
 
 }

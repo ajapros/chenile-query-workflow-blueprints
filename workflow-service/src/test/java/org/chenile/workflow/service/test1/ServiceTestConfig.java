@@ -98,8 +98,11 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 	}
 
 	@Bean STMTransitionAction<MfgModel> mfgBaseTransitionAction(
-		@Qualifier("stmTransitionActionResolver") STMTransitionActionResolver stmTransitionActionResolver){
-		return new BaseTransitionAction<>(stmTransitionActionResolver);
+		@Qualifier("stmTransitionActionResolver") STMTransitionActionResolver stmTransitionActionResolver,
+		@Qualifier("mfgActivitiesChecker") ActivityChecker activityChecker ){
+		BaseTransitionAction<MfgModel> bta = new BaseTransitionAction<>(stmTransitionActionResolver);
+		bta.activityChecker = activityChecker;
+		return bta;
 	}
 
 	@Bean ActivityChecker mfgActivitiesChecker(@Qualifier("mfgFlowStore") STMFlowStore stmFlowStore){

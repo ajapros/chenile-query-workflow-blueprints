@@ -7,12 +7,17 @@ public class ActivityLogImpl implements ActivityLog {
     public boolean success;
     public String comment;
     @Override
-    public String name() {
+    public String getName() {
         return name;
     }
 
     @Override
-    public boolean success() {
+    public boolean getSuccess() {
         return success;
+    }
+
+    @Override
+    public String getComment() {
+        return comment;
     }
 }
