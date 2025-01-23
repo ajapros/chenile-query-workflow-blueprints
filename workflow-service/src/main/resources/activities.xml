@@ -2,5 +2,4 @@
     <add-transition-tag tag="mandatory-activity" meta-activity="MANDATORY" eventIdTag="id"/>
     <add-transition-tag tag="optional-activity" meta-activity="OPTIONAL" eventIdTag="id"/>
     <add-transition-tag tag="activity-completion-checker" meta-activity="COMPLETION_CHECKER" eventIdTag="id"/>
-    <add-transition-tag tag="check-completeness" meta-
 </states>
