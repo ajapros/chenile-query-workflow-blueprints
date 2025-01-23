@@ -1,0 +1,11 @@
+<states>
+    <include file="activities"/>
+    <flow id='RETURN_FLOW' default="true">
+        <manual-state id='DEV' initialState="true">
+            <mandatory-activity id="build"/>
+            <mandatory-activity id="test"/>
+            <activity-completion-checker id="deploy" newStateId="PRODUCTION"/>
+        </manual-state>
+        <manual-state id="PRODUCTION"/>
+    </flow>
+</states>

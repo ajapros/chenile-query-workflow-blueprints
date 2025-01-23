@@ -7,6 +7,7 @@
 .idea/
 *.iml
 *.iws
+*.ipr
 .mvn
 
 # Mac
@@ -27,3 +28,28 @@ bin/
 # Others
 /shelf/
 /workspace.xml
+
+### STS ###
+.apt_generated
+.settings
+.springBeans
+.sts4-cache
+
+HELP.md
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+

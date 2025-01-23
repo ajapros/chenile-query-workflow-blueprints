@@ -13,6 +13,8 @@
 			<module>workflow-api</module>
 			<module>workflow-service</module>
 			<module>cucumber-workflow-utils</module>
+            <module>workflow-utils</module>
+            <module>stm-generate-puml</module>
     </modules>
 
     <packaging>pom</packaging>
@@ -20,7 +22,7 @@
     <parent>
         <groupId>org.chenile</groupId>
         <artifactId>chenile-parent</artifactId>
-        <version>2.0.11</version>
+        <version>2.0.12</version>
     </parent>
 
     <properties>

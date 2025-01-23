@@ -1,0 +1,15 @@
+<states>
+    <include file="activities"/>
+    <flow id='BUILD_FLOW' default="true">
+        <manual-state id='DEV' initialState="true">
+            <mandatory-activity id="build" newStateId="IsDevComplete"/>
+            <mandatory-activity id="test" newStateId="IsDevComplete"/>
+        </manual-state>
+        <auto-state id="IsDevComplete"  componentName="AreActivitiesCompleted"
+                    whichStateId="DEV">
+            <on eventId="yes" newStateId="PRODUCTION"/>
+            <on eventId="no" newStateId="DEV"/>
+        </auto-state>
+        <manual-state id="PRODUCTION"/>
+    </flow>
+</states>
