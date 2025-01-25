@@ -1,0 +1,15 @@
+@startuml
+start
+{{#.}}
+    fork {{^first}}again{{/first}}
+    {{#steps}}
+        {{#first}}
+        :{{from}};
+        {{/first}}
+        #tan:{{event}};
+        :{{to}};
+    {{/steps}}
+{{/.}}
+end fork
+stop
+@enduml

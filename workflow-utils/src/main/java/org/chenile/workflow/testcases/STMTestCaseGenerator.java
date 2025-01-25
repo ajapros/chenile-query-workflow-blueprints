@@ -17,34 +17,25 @@ public class STMTestCaseGenerator {
 
     public String toTestCase() throws Exception{
         StringBuilder stringBuilder = new StringBuilder("[\n");
-        boolean firstTestcase = true;
-        for (Deque<Testcase> stack: buildFlow()) {
-            if (!firstTestcase) stringBuilder.append(",");
-            else firstTestcase = false;
-            boolean first = true;
-            stringBuilder.append("[\n");
-            for (Testcase t: stack){
-                if (!first) stringBuilder.append(",");
-                else first = false;
-                stringBuilder.append("""
-                        {
-                            "from": "%s",
-                            "event": "%s",
-                            "to": "%s"
-                        }
-                        """.formatted(t.from,
-                        t.event, t.to));
+        for (Testcase testcase: buildFlow()) {
+            if (!testcase.first) stringBuilder.append(",");
+            stringBuilder.append("{\n");
+            stringBuilder.append("\"first\": ").append(testcase.first).append(",\n");
+            stringBuilder.append("\"steps\": [\n");
+            for (TestcaseStep t: testcase.steps){
+                if (!t.first) stringBuilder.append(",");
+                stringBuilder.append(t);
             }
             stringBuilder.append("]\n");
+            stringBuilder.append("}\n");
         }
         return stringBuilder.append("]\n").toString();
     }
 
-    public List<Deque<Testcase>> buildFlow() throws Exception{
+    public List<Testcase> buildFlow() throws Exception{
         State sd = flowStore.getInitialState(null);
         if(sd == null)return null;
-        Set<State> visitedStates = new HashSet<>();
-        return testcasePaths.cachedComputePaths(sd,visitedStates);
+        return testcasePaths.toTestcases(sd);
     }
 
     private StateDescriptor getInitialStateDescriptor(){
