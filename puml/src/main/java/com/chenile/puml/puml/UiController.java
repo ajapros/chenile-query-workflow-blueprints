@@ -40,6 +40,7 @@ public class UiController {
         model.addAttribute("inputModel", inputModel);
         try {
             model.addAttribute("imageData", getImage(inputModel));
+            model.addAttribute("testImageData", testcaseDiagram(inputModel));
         }
         catch (Exception e){
             e.printStackTrace();
