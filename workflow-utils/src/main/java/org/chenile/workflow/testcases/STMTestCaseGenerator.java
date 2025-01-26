@@ -1,18 +1,36 @@
 package org.chenile.workflow.testcases;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
 import org.chenile.stm.State;
 import org.chenile.stm.impl.STMFlowStoreImpl;
 import org.chenile.stm.model.StateDescriptor;
 import org.chenile.stm.model.Transition;
 
+import java.io.StringWriter;
 import java.util.*;
 
 public class STMTestCaseGenerator {
     STMFlowStoreImpl flowStore;
-    TestcasePaths testcasePaths = null;
+    TestcaseComputationStrategy testcaseComputationStrategy = null;
+    Mustache testcaseVisualizer = null;
     public STMTestCaseGenerator(STMFlowStoreImpl flowStore){
         this.flowStore = flowStore;
-        this.testcasePaths = new TestcasePaths(flowStore);
+        this.testcaseComputationStrategy = new TestcaseComputationStrategy(flowStore);
+    }
+
+    private Mustache obtainTestcaseVisualizer(){
+        if (testcaseVisualizer != null) return testcaseVisualizer;
+        MustacheFactory mf = new DefaultMustacheFactory();
+        testcaseVisualizer = mf.compile("testcases/testcases.mustache");
+        return testcaseVisualizer;
+    }
+    public String visualizeTestcase() throws Exception{
+        List<Testcase> model = buildFlow();
+        StringWriter writer = new StringWriter();
+        obtainTestcaseVisualizer().execute(writer, model).flush();
+        return writer.toString();
     }
 
     public String toTestCase() throws Exception{
@@ -35,17 +53,9 @@ public class STMTestCaseGenerator {
     public List<Testcase> buildFlow() throws Exception{
         State sd = flowStore.getInitialState(null);
         if(sd == null)return null;
-        return testcasePaths.toTestcases(sd);
+        return testcaseComputationStrategy.toTestcases(sd);
     }
 
-    private StateDescriptor getInitialStateDescriptor(){
-        for (StateDescriptor sd: flowStore.getAllStates()){
-            if (sd.isInitialState()){
-                return sd;
-            }
-        }
-        return null;
-    }
     private boolean isInMainFlow(StateDescriptor sd){
         return isInMainFlow(sd.getMetadata());
     }

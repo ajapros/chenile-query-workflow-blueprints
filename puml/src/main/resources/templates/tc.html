@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Testcase Generation & Visualization</title>
+    <link rel="stylesheet" href="/styles/styles.css"/>
+</head>
+<body>
+<h1>Welcome to Test case visualizer</h1>
+<form action="#" th:action="@{/visualize}" th:object="${formData}" method="post">
+    <!-- Textarea Section -->
+<div class="page-container">
+    <div class="textarea-container">
+        <div class="btn-container">
+            <input type="submit" value="Visualize Test Case"/>
+        </div>
+        <textarea th:field="*{stmXml}" id="stmXml" placeholder="Enter STM XML"
+                  rows="50" cols="80"></textarea>
+    </div>
+    <!-- Submit Button Section -->
+    <!-- Image and Placeholder Section -->
+    <div th:if="${error==null}" class="image-container">
+        <label>Generated Image:</label>
+        <img th:if="${imageData != null}" th:src="'data:image/png;base64,' + ${imageData}" alt="Generated Image" />
+        <div th:if="${imageData == null}" class="placeholder">
+            No image available. Press Visualize button to generate an image.</div>
+    </div>
+</div>
+    <div th:if="${error!=null}" class="error-container">
+        <h2>Error</h2>
+        <p th:text="${error}"></p>
+    </div>
+
+
+</form>
+</body>
+</html>

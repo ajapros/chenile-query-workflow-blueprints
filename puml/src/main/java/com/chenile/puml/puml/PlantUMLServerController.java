@@ -30,7 +30,7 @@ public class PlantUMLServerController {
 
     try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
       SourceStringReader reader = new SourceStringReader(script.replace(';', '\n'));
-      reader.outputImage(bos, new FileFormatOption(FileFormat.PNG, false));
+      reader.generateImage(bos, new FileFormatOption(FileFormat.PNG, false));
       byte[] array = bos.toByteArray();
 
       ByteArrayResource resource = new ByteArrayResource(array);

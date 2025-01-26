@@ -42,6 +42,15 @@ public class CLIHelper {
         return this.stmFlowStore.toJson();
     }
 
+    public void renderTestPuml(CLIParams params,String outputFile) throws Exception {
+        out(renderTestPuml(params),outputFile);
+    }
+
+    public String renderTestPuml(CLIParams params) throws Exception {
+        process(params);
+        return this.stmTestCaseGenerator.visualizeTestcase();
+    }
+
     public String renderStateDiagram(CLIParams params) throws Exception {
         process(params);
         if (params.stylingPropertiesFile != null || params.stylingPropertiesText != null){

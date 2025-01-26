@@ -28,10 +28,15 @@ public class UiController {
         return "index";
     }
 
+    @GetMapping("/tc")
+    public String showTestcase(@Valid @ModelAttribute("formData") InputModel inputModel, Model model) {
+        model.addAttribute("inputModel", inputModel);
+        return "tc";
+    }
+
     @PostMapping("/convert")
     public String convert(@Valid @ModelAttribute("formData") InputModel inputModel,
                           BindingResult result, Model model) {
-        // System.out.println(inputModel);
         model.addAttribute("inputModel", inputModel);
         try {
             model.addAttribute("imageData", getImage(inputModel));
@@ -43,17 +48,33 @@ public class UiController {
         return "index";
     }
 
-    private String getImage(InputModel inputModel){
-        String script;
+    @PostMapping("/visualize")
+    public String visualize(@Valid @ModelAttribute("formData") InputModel inputModel,
+                          BindingResult result, Model model) {
+        model.addAttribute("inputModel", inputModel);
         try {
-            script = generatePuml(inputModel);
-        } catch (Exception e) {
-            throw new FileProcessingException("Error generating UML script. Message = " + e.getMessage(), e);
+            model.addAttribute("imageData", testcaseDiagram(inputModel));
         }
+        catch (Exception e){
+            e.printStackTrace();
+            model.addAttribute("error", e.getMessage());
+        }
+        return "tc";
+    }
 
+    private String getImage(InputModel inputModel) throws Exception{
+        String script = generatePuml(inputModel);
+        return makeImageFromScript(script.replace(';', '\n'));
+    }
+
+    private String testcaseDiagram(InputModel inputModel) throws Exception{
+        return makeImageFromScript(visualizeTestcases(inputModel));
+    }
+
+    private String makeImageFromScript(String script){
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-            SourceStringReader reader = new SourceStringReader(script.replace(';', '\n'));
-            reader.outputImage(bos, new FileFormatOption(FileFormat.PNG, false));
+            SourceStringReader reader = new SourceStringReader(script);
+            reader.generateImage(bos, new FileFormatOption(FileFormat.PNG));
             byte[] array = bos.toByteArray();
 
             ByteArrayResource resource = new ByteArrayResource(array);
@@ -76,4 +97,11 @@ public class UiController {
         return cliHelper.renderStateDiagram(params);
     }
 
+    private String visualizeTestcases(InputModel inputModel) throws Exception{
+        CLIParams params = new CLIParams();
+        params.xmlText = inputModel.getStmXml();
+        String x = cliHelper.renderTestPuml(params);
+        System.err.println(x);
+        return x;
+    }
 }

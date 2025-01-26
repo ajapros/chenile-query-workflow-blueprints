@@ -18,8 +18,8 @@ import java.util.*;
  * multiple test scenarios.
  */
 
-public class TestcasePaths {
-    TestcasePaths(STMFlowStore flowStore){
+public class TestcaseComputationStrategy {
+    TestcaseComputationStrategy(STMFlowStore flowStore){
         this.stmFlowStore = flowStore;
         this.activityChecker = new ActivityChecker(stmFlowStore);
     }
@@ -40,11 +40,20 @@ public class TestcasePaths {
     }
 
     private  List<Testcase> cachedComputePaths(State state,Set<State> visitedStates){
+        // Create a new visited states with a copy of the existing ones. Don't pass the
+        // existing ones. We don't want the existing tree to be affected by the visited states
+        // of this branch of the tree.
         visitedStates = new HashSet<>(visitedStates);
         visitedStates.add(state);
         return computePaths(state,visitedStates);
     }
 
+    /**
+     * If the test case happens to have auto states they need to be simply dropped from the
+     * test case.
+     * @param testcases - List of test cases to update
+     * @return the altered test cases with the auto states dropped
+     */
     private List<Testcase> dropAutoStates(List<Testcase> testcases){
         List<Testcase> retTestcases = new ArrayList<>();
         for(Testcase testcase: testcases){
@@ -53,14 +62,17 @@ public class TestcasePaths {
             for(TestcaseStep testcaseStep: testcase.steps){
                 State state = new State(testcaseStep.from,testcaseStep.fromFlow);
                 StateDescriptor sd = stmFlowStore.getStateInfo(state);
+                // if this is an auto state make sure that the prev step points to
+                // the destination of the transition and not to the origin.
+                // this will merely mutate the prev step without recording it.
                 if (!sd.isManualState()){
                     if (prevStep != null){
                         prevStep.to = testcaseStep.to;
                         prevStep.toFlow = testcaseStep.toFlow;
-                        testcase1.steps.add(prevStep);
                     }
-                    prevStep = null;
                 }else {
+                    // for manual steps record the previous step if it exists
+                    // and update the prev step to the current step
                     if(prevStep != null)
                         testcase1.steps.add(prevStep);
                     prevStep = testcaseStep;

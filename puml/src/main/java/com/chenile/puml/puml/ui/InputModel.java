@@ -9,38 +9,31 @@ public class InputModel {
     private String stmXml="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "\n" +
             "<states>\n" +
-            "\t<event-information eventId='close' componentName='org.chenile.stm.test.basicflow.CloseCart'/>\n" +
-            "\t<event-information eventId=\"userLogin\" meta-acls=\"USER_MUST_BE_ABLE_TO_LOGIN,USER_CAN_ACCESS_SYSTEM\"/>\n" +
-            "\t<flow id='cart-flow' default='true'>\n" +
-            "\t\t<security-strategy componentName=\"org.chenile.stm.test.basicflow.MockSecurityStrategy\"/>\n" +
-            "\t\t<entry-action componentName=\"org.chenile.stm.test.basicflow.EntryAction\" />\n" +
-            "\t\t<exit-action componentName=\"org.chenile.stm.test.basicflow.ExitAction\" />\n" +
-            "\t\t\n" +
-            "\t\t<manual-state id='CREATED' initialState='true' meta-mainPath=\"true\">\n" +
-            "\t\t\t<on eventId='close' newStateId='CLOSED'\n" +
-            "\t\t\t    invokableOnlyFromStm='true'/>\n" +
-            "\t\t\t<on eventId='addItem' componentName='org.chenile.stm.test.basicflow.AddItem' />\n" +
-            "\t\t\t<on eventId='userLogin' componentName='org.chenile.stm.test.basicflow.UserLogin' />\n" +
-            "\t\t\t<on eventId='initiatePayment' componentName='org.chenile.stm.test.basicflow.InitiatePayment'\n" +
-            "\t\t\t\tnewStateId='PAYMENT_INITIATED' />\n" +
-            "\t\t</manual-state>\n" +
+            " <flow id='cart-flow' default='true'>\n" +
             "\n" +
-            "\t\t<manual-state id='PAYMENT_INITIATED'  meta-mainPath=\"true\">\n" +
-            "\t\t\t<on eventId=\"approve\" componentName=\"org.chenile.stm.test.basicflow.ApproveCart\"   meta-mainPath=\"true\"/>\n" +
-            "\t\t\t<on eventId=\"confirmPayment\" componentName='org.chenile.stm.test.basicflow.ConfirmPayment'\n" +
-            "\t\t\t\tnewStateId='TEST_STATE'   meta-mainPath=\"true\"/>\n" +
-            "\t\t</manual-state>\n" +
-            "\t\t\n" +
-            "\t\t<if id='TEST_STATE' condition='approved'\n" +
-            "\t\t then='confirm' else='reject'>\n" +
-            "\t\t<on eventId='confirm' newStateId='PAYMENT_CONFIRMED'  meta-mainPath=\"true\"/>\n" +
-            "\t\t<on eventId='reject' newStateId='PAYMENT_INITIATED'/>\n" +
-            "\t    </if>\n" +
+            "  <manual-state id='CREATED' initialState='true' meta-mainPath=\"true\">\n" +
+            "   <on eventId='close' newStateId='CLOSED'\n/>\n" +
+            "   <on eventId='addItem' />\n" +
+            "   <on eventId='userLogin' />\n" +
+            "   <on eventId='initiatePayment' newStateId='PAYMENT_INITIATED' />\n" +
+            "  </manual-state>\n" +
             "\n" +
-            "\t\t<manual-state id='PAYMENT_CONFIRMED'  meta-mainPath=\"true\"/>\n" +
-            "\t\t<manual-state id='CLOSED'/>\n" +
-            "\t</flow>\n" +
-            "\t\n" +
+            "  <manual-state id='PAYMENT_INITIATED'  meta-mainPath=\"true\">\n" +
+            "   <on eventId=\"approve\"   meta-mainPath=\"true\"/>\n" +
+            "   <on eventId=\"confirmPayment\" \n" +
+            "     newStateId='TEST_STATE'   meta-mainPath=\"true\"/>\n" +
+            "  </manual-state>\n" +
+            "  \n" +
+            "  <if id='TEST_STATE' condition='approved'\n" +
+            "    then='confirm' else='reject'>\n" +
+            "  <on eventId='confirm' newStateId='PAYMENT_CONFIRMED'  meta-mainPath=\"true\"/>\n" +
+            "  <on eventId='reject' newStateId='PAYMENT_INITIATED'/>\n" +
+            "      </if>\n" +
+            "\n" +
+            "  <manual-state id='PAYMENT_CONFIRMED'  meta-mainPath=\"true\"/>\n" +
+            "  <manual-state id='CLOSED'/>\n" +
+            " </flow>\n" +
+            " \n" +
             "</states>";
 
 

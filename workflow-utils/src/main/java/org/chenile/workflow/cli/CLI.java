@@ -17,8 +17,10 @@ public class CLI implements Runnable {
     private String stateForAllowedActions;
     @Option(names = {"-j", "--render-json"},paramLabel = "render-json", description = "Return a JSON representation of the XML file")
     private boolean toJson;
-    @Option(names = {"-t", "--generate-test-cases"},paramLabel = "render-json", description = "Return a JSON representation of the XML file")
+    @Option(names = {"-t", "--generate-test-cases"},paramLabel = "gen-test-cases", description = "Generates test cases")
     private boolean genTestCase;
+    @Option(names = {"-T", "--visualize-test-cases"},paramLabel = "visualize-test-cases", description = "Visualizes test cases")
+    private boolean visualizeTestCase;
     @Option(names = {"-o", "--output"},paramLabel = "output-file", description = "Writes output to the specified file")
     private String outputFile;
     @Option(names = {"-S", "--styling-properties-file"},paramLabel = "Styling-properties-file", description = "Use the properties file for setting styles according to metadata in states and transitions")
@@ -46,7 +48,9 @@ public class CLI implements Runnable {
                 cliHelper.toJson(params,outputFile);
             } else if (genTestCase) {
                 cliHelper.renderTestCases(params,outputFile);
-            }else {
+            }else if (visualizeTestCase) {
+                cliHelper.renderTestPuml(params,outputFile);
+            } else {
                 System.err.println("Missing option: at least one of the " +
                         "-s or -a options must be specified");
                 spec.commandLine().usage(System.err);

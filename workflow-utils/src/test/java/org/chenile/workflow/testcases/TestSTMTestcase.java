@@ -71,19 +71,11 @@ public class TestSTMTestcase {
     @Test public void testMultiple() throws Exception {
         STMTestCaseGenerator stmTestCaseGenerator = setup(LEAD);
         List<Testcase> testcases = stmTestCaseGenerator.buildFlow();
-        System.out.println("#testcases = " + testcases.size());
-        List<Testcase> list = testcases.stream().filter((testcase) -> !testcase.first).toList();
-        System.out.println("#testcases after first = true filter = " + list.size());
-        for (Testcase testcase: testcases){
-
-        }
-        // System.out.println(stmTestCaseGenerator.toTestCase());
-        //assertEquals(1, testcaseList.size());
-       // for (Testcase testcases: testcaseList){
-           // assertEquals(2,testcases.size());
-            //assertOrder(new TestcaseStep[] {
-                   // new TestcaseStep("DEV","DEV","build"),
-                   // new TestcaseStep("DEV","PRODUCTION","test")}, testcases);
+        // System.out.println("#testcases = " + testcases.size());
+       //  List<Testcase> list = testcases.stream().filter((testcase) -> !testcase.first).toList();
+       //  System.out.println("#testcases after first = true filter = " + list.size());
+        // for (Testcase testcase: testcases){
+//
         //}
     }
 }
