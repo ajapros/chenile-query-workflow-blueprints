@@ -101,8 +101,6 @@ public class UiController {
     private String visualizeTestcases(InputModel inputModel) throws Exception{
         CLIParams params = new CLIParams();
         params.xmlText = inputModel.getStmXml();
-        String x = cliHelper.renderTestPuml(params);
-        System.err.println(x);
-        return x;
+        return cliHelper.renderTestPuml(params);
     }
 }
