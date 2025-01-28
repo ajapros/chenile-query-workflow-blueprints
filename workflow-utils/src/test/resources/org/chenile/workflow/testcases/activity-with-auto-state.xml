@@ -7,9 +7,14 @@
         </manual-state>
         <auto-state id="IsDevComplete"  componentName="AreActivitiesCompleted"
                     whichStateId="DEV">
-            <on eventId="yes" newStateId="PRODUCTION"/>
+            <on eventId="yes" newStateId="QA"/>
             <on eventId="no" newStateId="DEV"/>
         </auto-state>
+        <manual-state id="QA">
+            <on eventId="pass" newStateId="PRODUCTION"/>
+            <on eventId="fail" newStateId="DISCARDED"/>
+        </manual-state>
         <manual-state id="PRODUCTION"/>
+        <manual-state id="DISCARDED"/>
     </flow>
 </states>

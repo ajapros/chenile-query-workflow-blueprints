@@ -42,13 +42,34 @@ public class CLIHelper {
         return this.stmFlowStore.toJson();
     }
 
+    public int numTests(CLIParams params) throws Exception {
+        process(params);
+        return this.stmTestCaseGenerator.buildFlow().size();
+    }
+
     public void renderTestPuml(CLIParams params,String outputFile) throws Exception {
         out(renderTestPuml(params),outputFile);
     }
 
+    public void visualizeTestcaseAsStateDiagram(CLIParams params,String outputDir) throws Exception {
+        List<String> strings = visualizeTestcaseAsStateDiagram(params);
+        new File(outputDir).mkdirs();
+        int index = 1;
+        for (String s:strings){
+            String file = outputDir + File.separator + index++ + ".puml";
+            out(s,file);
+        }
+    }
+
+    public List<String> visualizeTestcaseAsStateDiagram(CLIParams params) throws Exception {
+        process(params);
+        return this.stmTestCaseGenerator.visualizeTestcasesWithStateDiagram();
+    }
+
+
     public String renderTestPuml(CLIParams params) throws Exception {
         process(params);
-        return this.stmTestCaseGenerator.visualizeTestcase();
+        return this.stmTestCaseGenerator.visualizeTestcases();
     }
 
     public String renderStateDiagram(CLIParams params) throws Exception {

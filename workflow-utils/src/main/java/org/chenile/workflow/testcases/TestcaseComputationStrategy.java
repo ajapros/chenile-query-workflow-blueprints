@@ -30,13 +30,23 @@ public class TestcaseComputationStrategy {
         Set<State> visitedStates = new HashSet<>();
         List<Testcase> testcases = cachedComputePaths(state,visitedStates);
         testcases = dropAutoStates(testcases);
+        enhance(testcases);
+        return testcases;
+    }
+
+    /**
+     * Adds useful information to the test cases such as an ID, first flag etc.
+     * @param testcases the testcases to enhance
+     */
+    private void enhance(List<Testcase> testcases){
         if (!testcases.isEmpty())
             testcases.get(0).first = true;
+        int id = 1;
         for(Testcase testcase:testcases){
+            testcase.id = id++;
             if (!testcase.steps.isEmpty())
                 testcase.steps.getFirst().first = true;
         }
-        return testcases;
     }
 
     private  List<Testcase> cachedComputePaths(State state,Set<State> visitedStates){
@@ -50,39 +60,44 @@ public class TestcaseComputationStrategy {
 
     /**
      * If the test case happens to have auto states they need to be simply dropped from the
-     * test case.
+     * test case. Store the old steps in allSteps so that consumers who want all the steps inclusive
+     * of auto states can access them.
      * @param testcases - List of test cases to update
      * @return the altered test cases with the auto states dropped
      */
     private List<Testcase> dropAutoStates(List<Testcase> testcases){
-        List<Testcase> retTestcases = new ArrayList<>();
         for(Testcase testcase: testcases){
-            Testcase testcase1 = new Testcase();
+            testcase.allSteps = testcase.steps;
+            testcase.steps = new ArrayDeque<>();
             TestcaseStep prevStep = null;
-            for(TestcaseStep testcaseStep: testcase.steps){
+            for(TestcaseStep testcaseStep: testcase.allSteps){
                 State state = new State(testcaseStep.from,testcaseStep.fromFlow);
                 StateDescriptor sd = stmFlowStore.getStateInfo(state);
                 // if this is an auto state make sure that the prev step points to
                 // the destination of the transition and not to the origin.
                 // this will merely mutate the prev step without recording it.
                 if (!sd.isManualState()){
+                    String comment =  sd.getId() + " : "
+                            + testcaseStep.event;
                     if (prevStep != null){
                         prevStep.to = testcaseStep.to;
                         prevStep.toFlow = testcaseStep.toFlow;
+                        prevStep.comments.add(comment);
+                    }else {
+                        testcase.comments.add(comment);
                     }
                 }else {
                     // for manual steps record the previous step if it exists
                     // and update the prev step to the current step
                     if(prevStep != null)
-                        testcase1.steps.add(prevStep);
+                        testcase.steps.add(prevStep);
                     prevStep = testcaseStep;
                 }
             }
             if(prevStep != null)
-                testcase1.steps.add(prevStep);
-            retTestcases.add(testcase1);
+                testcase.steps.add(prevStep);
         }
-        return retTestcases;
+        return testcases;
     }
 
     private List<Testcase> computePaths(State state,Set<State> visitedStates) {

@@ -41,6 +41,7 @@ public class UiController {
         try {
             model.addAttribute("imageData", getImage(inputModel));
             model.addAttribute("testImageData", testcaseDiagram(inputModel));
+            model.addAttribute("numTests",numTests(inputModel));
         }
         catch (Exception e){
             e.printStackTrace();
@@ -55,6 +56,7 @@ public class UiController {
         model.addAttribute("inputModel", inputModel);
         try {
             model.addAttribute("imageData", testcaseDiagram(inputModel));
+
         }
         catch (Exception e){
             e.printStackTrace();
@@ -85,6 +87,7 @@ public class UiController {
         }
     }
 
+
     private String generatePuml(InputModel inputModel) throws Exception{
         CLIParams params = new CLIParams();
         params.xmlText = inputModel.getStmXml();
@@ -102,5 +105,11 @@ public class UiController {
         CLIParams params = new CLIParams();
         params.xmlText = inputModel.getStmXml();
         return cliHelper.renderTestPuml(params);
+    }
+
+    private int numTests(InputModel inputModel) throws Exception{
+        CLIParams params = new CLIParams();
+        params.xmlText = inputModel.getStmXml();
+        return cliHelper.numTests(params);
     }
 }

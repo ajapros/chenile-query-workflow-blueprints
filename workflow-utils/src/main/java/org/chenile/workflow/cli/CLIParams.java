@@ -11,4 +11,5 @@ public class CLIParams {
     public File enablementPropertiesFile;
     public String enablementPropertiesText;
     public String prefix;
+    public int testcaseId; // for visualization
 }

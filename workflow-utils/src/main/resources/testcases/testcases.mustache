@@ -1,15 +1,25 @@
 @startuml
 start
-{{#.}}
+{{#testcases}}
     fork {{^first}}again{{/first}}
+    {{#comments}}
+        note right
+        {{.}}
+        end note
+    {{/comments}}
     {{#steps}}
         {{#first}}
         :{{from}};
         {{/first}}
         #tan:{{event}};
+        {{#comments}}
+            note right
+            {{.}}
+            end note
+        {{/comments}}
         :{{to}};
     {{/steps}}
-{{/.}}
+{{/testcases}}
 end fork
 stop
 @enduml

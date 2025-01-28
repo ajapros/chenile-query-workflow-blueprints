@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A mock user approval process -->
+<!-- tests auto state in the beginning and two consecutive auto states in between -->
+<states>
+	<flow id='MULTIPLE_APPROVALS_FLOW' default='true'>
+
+		<if id='CHECK_IF_FIRST_TIME' initialState='true' meta-mainPath="true"
+				condition="firstTime"
+				then="firstTime"
+				else="repeat">
+			<on eventId='firstTime'  newStateId='FIRST_APPLICANT' />
+			<on eventId="repeat" newStateId="REGULAR_APPLICANT"/>
+		</if>
+
+		<manual-state id='FIRST_APPLICANT'>
+			<on eventId='backgroundCheckPassed' newStateId='REGULAR_APPLICANT'/>
+			<on eventId="backgroundFailed" newStateId="REJECTED"/>
+		</manual-state>
+		<manual-state id='REGULAR_APPLICANT' meta-mainPath="true">
+			<on eventId='initialApprovalSuccess' newStateId='CREDIT_CHECKS'/>
+			<on eventId="initialApprovalFail" newStateId="REJECTED"/>
+		</manual-state>
+		<if id='CREDIT_CHECKS'  condition="creditScore &gt; 780" meta-mainPath="true" then="success" else="fail" >
+			<on eventId="success" newStateId="GENEROSITY_CHECK"/>
+			<on eventId="fail" newStateId="REJECTED"/>
+		</if>
+		<if id='GENEROSITY_CHECK'  meta-mainPath="true" condition="charityContribution &gt; 0"
+				then="success" else="fail">
+			<on eventId="success" newStateId="SUCCESSFUL"/>
+			<on eventId="fail" newStateId="REJECTED"/>
+		</if>
+		<manual-state id='SUCCESSFUL'  meta-mainPath="true"/>
+		<manual-state id='REJECTED'/>
+	</flow>
+	
+</states>

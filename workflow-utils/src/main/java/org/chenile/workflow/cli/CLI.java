@@ -21,8 +21,10 @@ public class CLI implements Runnable {
     private boolean genTestCase;
     @Option(names = {"-T", "--visualize-test-cases"},paramLabel = "visualize-test-cases", description = "Visualizes test cases")
     private boolean visualizeTestCase;
-    @Option(names = {"-o", "--output"},paramLabel = "output-file", description = "Writes output to the specified file")
+    @Option(names = {"-o", "--output"},paramLabel = "output-file", description = "Writes output to the specified file or directory for multiple files")
     private String outputFile;
+    @Option(names = {"-r", "--render-tests-as-state"},paramLabel = "render-tests-as-state", description = "Renders state diagrams for all generated test cases")
+    private boolean renderTestsAsStateDiagram = false;
     @Option(names = {"-S", "--styling-properties-file"},paramLabel = "Styling-properties-file", description = "Use the properties file for setting styles according to metadata in states and transitions")
     private File stylingPropertiesFile;
     @Option(names = {"-e", "--enablement-properties-file"},paramLabel = "enablement-properties-file", description = "Use the properties file for enablement properties")
@@ -50,9 +52,11 @@ public class CLI implements Runnable {
                 cliHelper.renderTestCases(params,outputFile);
             }else if (visualizeTestCase) {
                 cliHelper.renderTestPuml(params,outputFile);
-            } else {
-                System.err.println("Missing option: at least one of the " +
-                        "-s or -a options must be specified");
+            } else if (renderTestsAsStateDiagram) {
+                cliHelper.visualizeTestcaseAsStateDiagram(params,outputFile);
+            }else {
+                System.err.println("Missing option: at least one of  " +
+                        "-s or -a or -tT or -i or  -j options must be specified");
                 spec.commandLine().usage(System.err);
             }
         } catch (Exception e) {

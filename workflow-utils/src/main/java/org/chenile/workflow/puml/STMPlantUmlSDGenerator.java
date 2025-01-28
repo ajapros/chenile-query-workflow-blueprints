@@ -16,7 +16,7 @@ public class STMPlantUmlSDGenerator {
 
     private final STMFlowStore stmFlowStore ;
     private final Map<String,Boolean> notOrphaned = new HashMap<>();
-    public TransitionStyler transitionStyler = new TransitionStyler();
+    public PumlStyler transitionStyler = new PumlStyler();
     public STMPlantUmlSDGenerator(STMFlowStore flowStore){
         this.stmFlowStore = flowStore;
         findIncomingForAllStates();
@@ -91,6 +91,8 @@ public class STMPlantUmlSDGenerator {
                 }
                 else if (isInMainPath(sd)){
                     stringBuilder.append(MAIN_PATH_STEREOTYPE);
+                }else {
+                    stringBuilder.append(getStyle(sd));
                 }
                 stringBuilder.append("\n");
             }
@@ -147,8 +149,8 @@ public class STMPlantUmlSDGenerator {
             stringBuilder.append(" -");
             if (isInMainPath(sd)){
                 stringBuilder.append(MAIN_PATH_LINE_STYLE);
-            }
-
+            }//else
+               // stringBuilder.append(getStyle(sd));
             return stringBuilder.append("-> ");
         }
 
@@ -202,6 +204,10 @@ public class STMPlantUmlSDGenerator {
 
     private String getStyle(Transition t) {
         return transitionStyler.getStyle(t);
+    }
+
+    private String getStyle(StateDescriptor sd) {
+        return transitionStyler.getStyle(sd);
     }
 
     private boolean checkForStates(Transition t){

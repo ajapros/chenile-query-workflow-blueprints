@@ -2,12 +2,14 @@ package org.chenile.workflow.testcases;
 
 import org.chenile.stm.model.Transition;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * The basic test case. The test case consists of a set of events that will be emitted.
- * The event transitions the state entity. The from and to state IDs are captured.
- * The testcase mirrors the transition for the most part but can be apart from it as well.
+ * The event transitions the state entity. The from and to state IDs are captured.<br/>
+ * The testcase object is derived from a transition and looks like it for the most part with additional information.
  */
 public class TestcaseStep {
     public boolean first = false;
@@ -17,14 +19,24 @@ public class TestcaseStep {
     public String to;// from state ID
     public String toFlow;
     public boolean manual = false;
-    public TestcaseStep(){}
+    public List<String> comments = new ArrayList<>();
+    public Transition transition;
+
     public TestcaseStep(Transition t){
         this.event = t.getEventId();
         this.fromFlow = t.getFlowId();
         this.from = t.getStateId();
         this.to = t.getNewStateId();
         this.toFlow = t.getNewFlowId();
+        this.transition = t;
     }
+
+    /**
+     * This method is used in test cases for assertions.
+     * @param from - from State ID
+     * @param to - to State ID
+     * @param event - Event
+     */
     public TestcaseStep(String from, String to, String event){
         this.from = from; this.to = to; this.event = event;
     }
@@ -36,10 +48,13 @@ public class TestcaseStep {
             "from": "%s",
             "fromFlow": "%s",
             "toFlow": "%s",
+            %s
             "isManual": %s,
             "to": "%s"
         }
-        """.formatted(this.first,this.event,this.from,this.fromFlow,this.toFlow,this.manual,this.to);
+        """.formatted(this.first,this.event,this.from,this.fromFlow,this.toFlow,
+                STMTestCaseGenerator.printComments(comments),
+                this.manual,this.to);
     }
 
     @Override

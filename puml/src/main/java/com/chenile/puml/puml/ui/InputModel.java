@@ -85,6 +85,8 @@ public class InputModel {
     public void setStmXml(String stmXml) {
         this.stmXml = stmXml;
     }
+    private int testcaseId;
+
 
     @Override
     public String toString() {
@@ -92,5 +94,13 @@ public class InputModel {
                 "stmXml='" + stmXml + '\'' +
                 ", svg='" + svg + '\'' +
                 '}';
+    }
+
+    public int getTestcaseId() {
+        return testcaseId;
+    }
+
+    public void setTestcaseId(int testcaseId) {
+        this.testcaseId = testcaseId;
     }
 }
