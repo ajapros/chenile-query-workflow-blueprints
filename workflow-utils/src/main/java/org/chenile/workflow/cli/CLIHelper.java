@@ -74,7 +74,7 @@ public class CLIHelper {
 
     public String renderStateDiagram(CLIParams params) throws Exception {
         process(params);
-        if (params.stylingPropertiesFile != null || params.stylingPropertiesText != null){
+        if (params.stylingFile != null || params.stylingPropertiesText != null){
             loadStylingProperties(params);
         }
         return this.generator.toStateDiagram();
@@ -167,21 +167,21 @@ public class CLIHelper {
     }
 
     private void loadStylingProperties(CLIParams params) throws Exception {
-        if (params.stylingPropertiesFile != null)
+        if (params.stylingFile != null)
             loadStylingPropertiesFromFile(params);
         else if (params.stylingPropertiesText != null)
            loadStylingPropertiesFromText(params);
     }
 
     private void loadStylingPropertiesFromFile(CLIParams params) throws Exception{
-        try (InputStream inputStream = Files.newInputStream(params.stylingPropertiesFile.toPath())){
-            this.generator.transitionStyler.loadFromXML(inputStream);
+        try (InputStream inputStream = Files.newInputStream(params.stylingFile.toPath())){
+            this.generator.transitionStyler.load(inputStream);
         }
     }
 
     private void loadStylingPropertiesFromText(CLIParams params) throws Exception{
         try (InputStream inputStream = new ByteArrayInputStream(params.stylingPropertiesText.getBytes())){
-            this.generator.transitionStyler.loadFromXML(inputStream);
+            this.generator.transitionStyler.load(inputStream);
         }
     }
 

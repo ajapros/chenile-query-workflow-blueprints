@@ -10,9 +10,7 @@
    BorderThickness<<MAIN_PATH>> 4
    BorderColor<<MAIN_PATH>> Peru
    BackgroundColor<<MAIN_PATH>> Bisque
-  }
-  skinparam state {
-     BackgroundColor<<orphaned>> OrangeRed
+   BackgroundColor<<orphaned>> OrangeRed
   }
 state AreOutOfAssemblyLineActivitiesComplete <<choice>> 
 note right of AreOutOfAssemblyLineActivitiesComplete : **AreOutOfAssemblyLineActivitiesComplete**\n**descriptorClass:**org.chenile.stm.model.AutomaticStateDescriptor\n**tag:**auto-state
@@ -34,6 +32,12 @@ SOLD -[thickness=4,#Peru]-> [*]
 AreSalesActivitiesComplete --> READY : no
 AreSalesActivitiesComplete -[thickness=4,#Peru]-> SOLD : <color:Peru>**yes**
 IN_ASSEMBLY_LINE -[thickness=4,#Peru]-> OUT_OF_ASSEMBLY_LINE : <color:Peru>**finishManufacturing**
+IN_ASSEMBLY_LINE --> IN_ASSEMBLY_LINE
+note on link #LightBlue
+build
+inAssemblyTesting
+fine-tune
+end note
 [*] -[thickness=4,#Peru]-> INITIATED
 INITIATED -[thickness=4,#Peru]-> IN_ASSEMBLY_LINE : <color:Peru>**putInAssemblyLine**
 legend right

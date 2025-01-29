@@ -2,47 +2,76 @@ package org.chenile.workflow.puml;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.chenile.stm.model.StateDescriptor;
-import org.chenile.stm.model.Transition;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
+/**
+ * Allows for styling the State Diagrams in Plant UML.
+ * The state diagram can be styled using an XML Properties file or a normal properties
+ * file if the delimiter is set to something other than double-equals
+ *
+ */
 public class PumlStyler {
+
+    public static final String EQUALS = "==";
+    public String equals = EQUALS;
+
+    public static class StyleRules {
+        public List<StyleRule> rules = new ArrayList<>();
+    }
+    public static class StyleRule {
+        public String expression;
+        public StyleElements elements;
+    }
     public static class StyleElements {
         public int thickness; // in pixels
         public String color; // any valid PUML color code or Hex code
         public String lineStyle;// can be dotted or bold
-        public String toString() {
-            try {
-                return objectMapper.writeValueAsString(this);
-            }catch(Exception e) { return "";}
-        }
     }
+
+    public StyleRules styleRules = new StyleRules();
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    Properties props = new Properties();
 
-    public void loadFromXML(InputStream inputStream) throws Exception{
-        props.loadFromXML(inputStream);
+    /**
+     * Use a json file to load the properties. The equals delimiter is switched to : automatically
+     * @param inputStream the input stream from the json file
+     * @throws Exception if an error is encountered while processing the file
+     */
+    public void load(InputStream inputStream) throws Exception{
+        this.styleRules = objectMapper.readValue(inputStream, StyleRules.class);
     }
 
-    public void setStyle(String expr, String value){
-        props.setProperty(expr,value);
+    public void addRule(StyleRule rule) {
+        this.styleRules.rules.add(rule);
+    }
+
+    public void addRules(InputStream inputStream) throws Exception{
+        StyleRules styleRules = objectMapper.readValue(inputStream, StyleRules.class);
+        this.styleRules.rules.addAll(styleRules.rules);
     }
 
     public void clear(){
-        props.clear();
+        styleRules.rules.clear();
     }
 
-    public void loadFromXML(String s) throws Exception{
-         loadFromXML(new ByteArrayInputStream(s.getBytes()));
-    }
-
-    public String getStyle(StateDescriptor sd){
-        StyleElements elements = null;
-        elements = getStyle(sd.getMetadata());
+    /**
+     * In Plant UML state diagrams, if we have to change the style for a state then
+     * we have to write a construct that looks like below:<br/>
+     * <code>
+     * state A #White##[bold]Black
+     * </code><br/>
+     * <p>In this example, White is the background color and Black is the border color.
+     * Bold is the line style of the border line. </p>
+     * This method emits the styling string (in the form "#White##[bold]Black" or a blank
+     * string if no styling string is specified for the given metadata.
+     * @param md metadata
+     * @return a styling string of the form indicated above.
+     */
+    public String getStateStyle(Map<String,String> md){
+        StyleElements elements = getStyle(md);
         if (elements == null) return "";
         String s = " ";
         if (elements.color != null)s += "#" + elements.color;
@@ -51,8 +80,19 @@ public class PumlStyler {
         return s;
     }
 
-    public String getStyle(Transition t) {
-        StyleElements elements = getStyle(t.getMetadata());
+    /**
+     * In Plant UML state diagrams, if we have to change the style for a connection between
+     * two states, we have to write a construct that looks like below:<br/>
+     * <code>
+     * A -[thickness=x,#white]-> B
+     * </code><br/>
+     * This method emits the styling string (in the form "[thickness=2,#white]" or a blank
+     * string if no styling string is specified for the given metadata.
+     * @param md metadata
+     * @return a styling string of the form indicated above.
+     */
+    public String getConnectionStyle(Map<String,String> md) {
+        StyleElements elements = getStyle(md);
         if (elements == null) return "";
         return "[" +
                 ((elements.thickness > 0)? "thickness=" + elements.thickness + "," : "")
@@ -60,15 +100,11 @@ public class PumlStyler {
                 + "]";
     }
 
-    public StyleElements getStyle(Map<String,String> md) {
-        for (Map.Entry<Object, Object> prop : props.entrySet()) {
-            String key = (String) prop.getKey();
-            String[] arr = key.split("==");
-            String value = (String) prop.getValue();
+    private StyleElements getStyle(Map<String,String> md) {
+        for (StyleRule rule : styleRules.rules) {
+            String[] arr = rule.expression.split(equals);
             if (arr[1].equals(md.get(arr[0]))) {
-                try {
-                    return objectMapper.readValue(value, StyleElements.class);
-                }catch (Exception e){ return null;}
+                return rule.elements;
             }
         }
         return null;

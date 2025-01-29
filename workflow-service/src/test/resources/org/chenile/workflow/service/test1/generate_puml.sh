@@ -1,1 +1,1 @@
-stm-cli -s -o mfg.puml -S styling.xml mfg.xml
+stm-cli -s -o mfg.puml -S styling.json mfg.xml

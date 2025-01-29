@@ -92,7 +92,7 @@ public class STMPlantUmlSDGenerator {
                 else if (isInMainPath(sd)){
                     stringBuilder.append(MAIN_PATH_STEREOTYPE);
                 }else {
-                    stringBuilder.append(getStyle(sd));
+                    stringBuilder.append(getStateStyle(sd.getMetadata()));
                 }
                 stringBuilder.append("\n");
             }
@@ -149,8 +149,8 @@ public class STMPlantUmlSDGenerator {
             stringBuilder.append(" -");
             if (isInMainPath(sd)){
                 stringBuilder.append(MAIN_PATH_LINE_STYLE);
-            }//else
-               // stringBuilder.append(getStyle(sd));
+            }else
+                stringBuilder.append(getConnectionStyle(sd.getMetadata()));
             return stringBuilder.append("-> ");
         }
 
@@ -159,7 +159,7 @@ public class STMPlantUmlSDGenerator {
             if (isInMainPath(t)) {
                 stringBuilder.append(MAIN_PATH_LINE_STYLE);
             }else {
-                stringBuilder.append(getStyle(t));
+                stringBuilder.append(getConnectionStyle(t.getMetadata()));
             }
             return stringBuilder.append("-> ");
         }
@@ -202,12 +202,12 @@ public class STMPlantUmlSDGenerator {
         return Boolean.parseBoolean(mainPath);
     }
 
-    private String getStyle(Transition t) {
-        return transitionStyler.getStyle(t);
+    private String getConnectionStyle(Map<String,String> md) {
+        return transitionStyler.getConnectionStyle(md);
     }
 
-    private String getStyle(StateDescriptor sd) {
-        return transitionStyler.getStyle(sd);
+    private String getStateStyle(Map<String,String> md) {
+        return transitionStyler.getStateStyle(md);
     }
 
     private boolean checkForStates(Transition t){

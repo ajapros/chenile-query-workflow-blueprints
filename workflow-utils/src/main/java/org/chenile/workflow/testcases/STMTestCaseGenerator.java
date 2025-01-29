@@ -8,13 +8,14 @@ import org.chenile.stm.State;
 import org.chenile.stm.impl.ConfigBasedEnablementStrategy;
 import org.chenile.stm.impl.ConfigProviderImpl;
 import org.chenile.stm.impl.STMFlowStoreImpl;
-import org.chenile.stm.model.StateDescriptor;
-import org.chenile.stm.model.Transition;
 import org.chenile.workflow.puml.PumlStyler;
 import org.chenile.workflow.puml.STMPlantUmlSDGenerator;
 
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.random.RandomGenerator;
 
 public class STMTestCaseGenerator {
@@ -57,8 +58,11 @@ public class STMTestCaseGenerator {
         elements.thickness = 5;
         elements.color = randomColor();
         elements.lineStyle = "bold";
+        PumlStyler.StyleRule styleRule = new PumlStyler.StyleRule();
+        styleRule.expression = "testcase=="+ testcase.id;
+        styleRule.elements = elements;
         plantUmlSDGenerator.transitionStyler.clear();
-        plantUmlSDGenerator.transitionStyler.setStyle("testcase=="+ testcase.id, elements.toString());
+        plantUmlSDGenerator.transitionStyler.addRule(styleRule);
         EnablementStrategy enablementStrategy = getEnablementStrategy(testcase);
         flowStore.setEnablementStrategy(enablementStrategy);
         return plantUmlSDGenerator.toStateDiagram();
@@ -129,16 +133,4 @@ public class STMTestCaseGenerator {
         return testcaseComputationStrategy.toTestcases(sd);
     }
 
-    private boolean isInMainFlow(StateDescriptor sd){
-        return isInMainFlow(sd.getMetadata());
-    }
-
-    private boolean isInMainFlow(Transition t){
-        return isInMainFlow(t.getMetadata());
-    }
-
-    private boolean isInMainFlow(Map<String, String> metadata) {
-        String val = metadata.get("mainFlow");
-        return Boolean.parseBoolean(val);
-    }
 }

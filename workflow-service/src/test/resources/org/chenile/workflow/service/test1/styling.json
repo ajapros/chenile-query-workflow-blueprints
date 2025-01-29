@@ -1,0 +1,18 @@
+{
+        "rules": [
+                {
+                        "expression": "activity==MANDATORY",
+                        "elements": {
+                                "color": "blue",
+                                "thickness": 3
+                        }
+                },
+                {
+                        "expression": "activity==OPTIONAL",
+                        "elements": {
+                                "color": "LightBlue",
+                                "thickness": 3
+                        }
+                }
+        ]
+}

@@ -25,8 +25,8 @@ public class CLI implements Runnable {
     private String outputFile;
     @Option(names = {"-r", "--render-tests-as-state"},paramLabel = "render-tests-as-state", description = "Renders state diagrams for all generated test cases")
     private boolean renderTestsAsStateDiagram = false;
-    @Option(names = {"-S", "--styling-properties-file"},paramLabel = "Styling-properties-file", description = "Use the properties file for setting styles according to metadata in states and transitions")
-    private File stylingPropertiesFile;
+    @Option(names = {"-S", "--styling-rules-file"},paramLabel = "Styling-rules-file", description = "Use the JSON file for setting styles according to metadata in states and transitions")
+    private File stylingFile;
     @Option(names = {"-e", "--enablement-properties-file"},paramLabel = "enablement-properties-file", description = "Use the properties file for enablement properties")
     private File enablementPropertiesFile;
     @Option(names = {"-p", "--prefix"},paramLabel = "prefix", description = "The prefix for all properties")
@@ -69,7 +69,7 @@ public class CLI implements Runnable {
         params.enablementPropertiesFile = this.enablementPropertiesFile;
         params.prefix = this.prefix;
         params.stateForAllowedActions = this.stateForAllowedActions;
-        params.stylingPropertiesFile = this.stylingPropertiesFile;
+        params.stylingFile = this.stylingFile;
         params.xmlFile = xmlFileName;
         return params;
     }
