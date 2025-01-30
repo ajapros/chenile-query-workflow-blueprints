@@ -60,7 +60,7 @@ public class STMTestCaseGenerator {
         elements.lineStyle = "bold";
         PumlStyler.StyleRule styleRule = new PumlStyler.StyleRule();
         styleRule.expression = "testcase=="+ testcase.id;
-        styleRule.elements = elements;
+        styleRule.style = elements;
         plantUmlSDGenerator.transitionStyler.clear();
         plantUmlSDGenerator.transitionStyler.addRule(styleRule);
         EnablementStrategy enablementStrategy = getEnablementStrategy(testcase);

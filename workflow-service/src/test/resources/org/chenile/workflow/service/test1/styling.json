@@ -2,14 +2,14 @@
         "rules": [
                 {
                         "expression": "activity==MANDATORY",
-                        "elements": {
+                        "style": {
                                 "color": "blue",
                                 "thickness": 3
                         }
                 },
                 {
                         "expression": "activity==OPTIONAL",
-                        "elements": {
+                        "style": {
                                 "color": "LightBlue",
                                 "thickness": 3
                         }

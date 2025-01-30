@@ -9,28 +9,28 @@ public class InputModel {
     private String stmXml="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "\n" +
             "<states>\n" +
-            " <flow id='cart-flow' default='true'>\n" +
+            " <flow id='CART_FLOW' default='true'>\n" +
             "\n" +
-            "  <manual-state id='CREATED' initialState='true' meta-mainPath=\"true\">\n" +
+            "  <manual-state id='CREATED' initialState='true' >\n" +
             "   <on eventId='close' newStateId='CLOSED'\n/>\n" +
             "   <on eventId='addItem' />\n" +
             "   <on eventId='userLogin' />\n" +
             "   <on eventId='initiatePayment' newStateId='PAYMENT_INITIATED' />\n" +
             "  </manual-state>\n" +
             "\n" +
-            "  <manual-state id='PAYMENT_INITIATED'  meta-mainPath=\"true\">\n" +
-            "   <on eventId=\"approve\"   meta-mainPath=\"true\"/>\n" +
+            "  <manual-state id='PAYMENT_INITIATED' >\n" +
+            "   <on eventId=\"approve\" />\n" +
             "   <on eventId=\"confirmPayment\" \n" +
-            "     newStateId='TEST_STATE'   meta-mainPath=\"true\"/>\n" +
+            "     newStateId='TEST_STATE' />\n" +
             "  </manual-state>\n" +
             "  \n" +
             "  <if id='TEST_STATE' condition='approved'\n" +
             "    then='confirm' else='reject'>\n" +
-            "  <on eventId='confirm' newStateId='PAYMENT_CONFIRMED'  meta-mainPath=\"true\"/>\n" +
+            "  <on eventId='confirm' newStateId='PAYMENT_CONFIRMED' />\n" +
             "  <on eventId='reject' newStateId='PAYMENT_INITIATED'/>\n" +
             "      </if>\n" +
             "\n" +
-            "  <manual-state id='PAYMENT_CONFIRMED'  meta-mainPath=\"true\"/>\n" +
+            "  <manual-state id='PAYMENT_CONFIRMED' />\n" +
             "  <manual-state id='CLOSED'/>\n" +
             " </flow>\n" +
             " \n" +
@@ -45,7 +45,11 @@ public class InputModel {
         this.enablementProperties = enablementProperties;
     }
 
-    private String enablementProperties;
+    private String enablementProperties = """
+            cart.CART_FLOW.PAYMENT_INITIATED.meta.some_name=some_value
+            cart.state.add.XXX.in=CART_FLOW
+            cart.CART_FLOW.PAYMENT_INITIATED.confirmPayment.meta.some_name=some_value
+            """;
 
     public String getStylingProperties() {
         return stylingProperties;
@@ -55,7 +59,16 @@ public class InputModel {
         this.stylingProperties = stylingProperties;
     }
 
-    private String stylingProperties;
+    private String stylingProperties = """
+            {
+               "rules": [
+               {
+                "expression": "some_name==some_value",
+                "style": {"color": "Fuchsia","thickness": 2.5}
+               }
+              ]
+            }
+            """;
 
     public String getPrefix() {
         return prefix;
@@ -65,7 +78,7 @@ public class InputModel {
         this.prefix = prefix;
     }
 
-    private String prefix;
+    private String prefix = "cart";
     @NotBlank(message = "XML is mandatory")
     @Size(min = 1, max = 100)
     private String svg;

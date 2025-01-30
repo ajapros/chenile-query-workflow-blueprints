@@ -24,7 +24,7 @@ public class PumlStyler {
     }
     public static class StyleRule {
         public String expression;
-        public StyleElements elements;
+        public StyleElements style;
     }
     public static class StyleElements {
         public int thickness; // in pixels
@@ -104,7 +104,7 @@ public class PumlStyler {
         for (StyleRule rule : styleRules.rules) {
             String[] arr = rule.expression.split(equals);
             if (arr[1].equals(md.get(arr[0]))) {
-                return rule.elements;
+                return rule.style;
             }
         }
         return null;
