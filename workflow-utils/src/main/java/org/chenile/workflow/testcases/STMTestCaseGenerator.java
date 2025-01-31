@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
 
 public class STMTestCaseGenerator {
     STMFlowStoreImpl flowStore;
@@ -44,11 +45,14 @@ public class STMTestCaseGenerator {
         return writer.toString();
     }
 
-    public List<String> visualizeTestcasesWithStateDiagram() throws Exception {
+    public Map<String,String> visualizeTestcasesWithStateDiagram() throws Exception {
         List<Testcase> testcases = buildFlow();
-        List<String> ret = new ArrayList<>();
+        Map<String,String> ret = new HashMap<>();
         for (Testcase testcase : testcases) {
-            ret.add(visualizeTestcasesWithStateDiagram(testcase));
+            String steps = testcase.allSteps.stream()
+                    .map(step -> step.event)
+                    .collect(Collectors.joining("->"));
+            ret.put(steps,visualizeTestcasesWithStateDiagram(testcase));
         }
         return ret;
     }

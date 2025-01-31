@@ -100,9 +100,9 @@
             </div>
 
             <!-- Convert Button Section -->
-            <div class="col-md-1 d-flex align-items-center">
+            <div class="col-md-1 d-flex">
                 <div class="w-100">
-                    <input type="submit" class="btn btn-primary w-100" value="Convert">
+                    <input type="submit" class="btn btn-primary w-100" value="=>">
                 </div>
             </div>
 
@@ -115,15 +115,33 @@
                             Actual Image
                         </button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="testcase-image-tab" data-bs-toggle="tab" data-bs-target="#testcaseImage" type="button" role="tab" aria-controls="testcaseImage" aria-selected="false">
-                            Test Case Image
+<!--                    <li class="nav-item" role="presentation">-->
+<!--                        <button class="nav-link" id="testcase-image-tab" data-bs-toggle="tab" data-bs-target="#testcaseImage" type="button" role="tab" aria-controls="testcaseImage" aria-selected="false">-->
+<!--                            Test Case Image-->
+<!--                        </button>-->
+<!--                    </li>-->
+                    <li class="nav-item" th:each="entry, iterStat : ${imageTabs}">
+                        <button class="nav-link"
+                                th:classappend="${iterStat.first} ? '' : ''"
+                                th:id="${entry.key + '-tab'}"
+                                data-bs-toggle="tab"
+                                th:data-bs-target="'#tab' + ${entry.key.replace(' ', '')}"
+                                type="button"
+                                role="tab"
+                                th:aria-controls="${entry.key.replace(' ', '')}"
+                                th:aria-selected="${iterStat.first} ? 'true' : 'false'">
+                            <span th:text="${entry.key}"></span>
                         </button>
                     </li>
+
                 </ul>
                 <!-- Tab Content for Images -->
                 <div class="tab-content mt-3">
-                    <div class="tab-pane fade show active" id="actualImage" role="tabpanel" aria-labelledby="actual-image-tab">
+                    <div
+                            class="tab-pane fade show active"
+                            id="actualImage"
+                            role="tabpanel"
+                            aria-labelledby="actual-image-tab">
                         <label>Generated Actual Image:</label>
                         <div class="scrollable-container">
                             <img th:if="${imageData != null}" th:src="'data:image/png;base64,' + ${imageData}" alt="Actual Image" />
@@ -131,14 +149,29 @@
                         </div>
 
                     </div>
-                    <div class="tab-pane fade" id="testcaseImage" role="tabpanel" aria-labelledby="testcase-image-tab">
-                        <label>Generated Test Case Image:</label>
-                        <div class="scrollable-container">
-                            <img th:if="${testImageData != null}" th:src="'data:image/png;base64,' + ${testImageData}" alt="Test Case Image" />
-                            <div th:if="${testImageData == null}" class="placeholder">No test case image available. Please convert to generate the test case image.</div>
-                        </div>
+<!--                    <div class="tab-pane fade" id="testcaseImage" role="tabpanel" aria-labelledby="testcase-image-tab">-->
+<!--                        <label>Generated Test Case Image:</label>-->
+<!--                        <div class="scrollable-container">-->
+<!--                            <img th:if="${testImageData != null}" th:src="'data:image/png;base64,' + ${testImageData}" alt="Test Case Image" />-->
+<!--                            <div th:if="${testImageData == null}" class="placeholder">No test case image available. Please convert to generate the test case image.</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
 
+                    <div th:each="entry, iterStat : ${imageTabs}"
+                         class="tab-pane fade"
+                         th:classappend="${iterStat.first} ? '' : ''"
+                         th:id="'tab' +${entry.key.replace(' ', '')}"
+                         role="tabpanel"
+                         th:aria-labelledby="${entry.key + '-tab'}">
+
+                        <label th:text="'Generated ' + ${entry.key} + ':'"></label>
+                        <div class="scrollable-container">
+                            <img th:if="${entry.value != null}" th:src="'data:image/png;base64,' + ${entry.value}" alt="Image" />
+                            <div th:if="${entry.value == null}" class="placeholder">No image available. Please convert to generate the image.</div>
+                        </div>
                     </div>
+
+
                 </div>
                 <!-- Error Section -->
                 <div th:if="${error!=null}" class="alert alert-danger mt-4">
@@ -149,5 +182,8 @@
         </div>
     </form>
 </div>
+
+
+
 </body>
 </html>

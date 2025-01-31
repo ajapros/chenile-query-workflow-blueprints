@@ -11,7 +11,9 @@ import org.chenile.workflow.testcases.STMTestCaseGenerator;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class CLIHelper {
 
@@ -52,7 +54,7 @@ public class CLIHelper {
     }
 
     public void visualizeTestcaseAsStateDiagram(CLIParams params,String outputDir) throws Exception {
-        List<String> strings = visualizeTestcaseAsStateDiagram(params);
+        Collection<String> strings = visualizeTestcaseAsStateDiagram(params).values();
         new File(outputDir).mkdirs();
         int index = 1;
         for (String s:strings){
@@ -61,7 +63,7 @@ public class CLIHelper {
         }
     }
 
-    public List<String> visualizeTestcaseAsStateDiagram(CLIParams params) throws Exception {
+    public Map<String,String> visualizeTestcaseAsStateDiagram(CLIParams params) throws Exception {
         process(params);
         return this.stmTestCaseGenerator.visualizeTestcasesWithStateDiagram();
     }

@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class UiController {
@@ -41,7 +43,8 @@ public class UiController {
         try {
             model.addAttribute("imageData", getImage(inputModel));
             model.addAttribute("testImageData", testcaseDiagram(inputModel));
-            model.addAttribute("numTests",numTests(inputModel));
+            Map<String,String>allTests= numTests(inputModel);
+            model.addAttribute("imageTabs",allTests);
         }
         catch (Exception e){
             e.printStackTrace();
@@ -107,9 +110,14 @@ public class UiController {
         return cliHelper.renderTestPuml(params);
     }
 
-    private int numTests(InputModel inputModel) throws Exception{
+    private Map<String,String> numTests(InputModel inputModel) throws Exception{
         CLIParams params = new CLIParams();
         params.xmlText = inputModel.getStmXml();
-        return cliHelper.numTests(params);
+
+        Map<String,String> allTests = cliHelper.visualizeTestcaseAsStateDiagram(params);
+        allTests.forEach((key, value) -> allTests.replace(key, makeImageFromScript(value)));
+        return allTests;
+        //return cliHelper.numTests(params);
+
     }
 }
