@@ -36,7 +36,7 @@ public class PumlStyler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * Use a json file to load the properties. The equals delimiter is switched to : automatically
+     * Use a json file to load the properties.
      * @param inputStream the input stream from the json file
      * @throws Exception if an error is encountered while processing the file
      */
