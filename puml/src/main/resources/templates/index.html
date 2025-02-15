@@ -54,7 +54,7 @@
 <div class="container-fluid">
     <h1>STM XML to Plant UML Converter</h1>
     <form action="#" th:action="@{/convert}" th:object="${formData}" method="post">
-        <div class="row">
+        <div class="row" style="width:100%;">
             <!-- Tabs and Input Section -->
             <div class="col-md-5">
                 <!-- Nav Tabs -->
@@ -102,88 +102,73 @@
             <!-- Convert Button Section -->
             <div class="col-md-1 d-flex">
                 <div class="w-100">
-                    <input type="submit" class="btn btn-primary w-100" value="=>">
+                    <input type="submit" class="btn btn-primary w-100" value="Convert">
                 </div>
             </div>
 
             <!-- Image Display Section -->
             <div class="col-md-6">
-                <!-- Nav Tabs for Images -->
-                <ul class="nav nav-tabs" id="imageTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="actual-image-tab" data-bs-toggle="tab" data-bs-target="#actualImage" type="button" role="tab" aria-controls="actualImage" aria-selected="true">
-                            Actual Image
-                        </button>
-                    </li>
-<!--                    <li class="nav-item" role="presentation">-->
-<!--                        <button class="nav-link" id="testcase-image-tab" data-bs-toggle="tab" data-bs-target="#testcaseImage" type="button" role="tab" aria-controls="testcaseImage" aria-selected="false">-->
-<!--                            Test Case Image-->
-<!--                        </button>-->
-<!--                    </li>-->
-                    <li class="nav-item" th:each="entry, iterStat : ${imageTabs}">
-                        <button class="nav-link"
-                                th:classappend="${iterStat.first} ? '' : ''"
-                                th:id="${entry.key + '-tab'}"
-                                data-bs-toggle="tab"
-                                th:data-bs-target="'#tab' + ${entry.key.replace(' ', '')}"
-                                type="button"
-                                role="tab"
-                                th:aria-controls="${entry.key.replace(' ', '')}"
-                                th:aria-selected="${iterStat.first} ? 'true' : 'false'">
-                            <span th:text="${entry.key}"></span>
-                        </button>
-                    </li>
+                <label for="imageSelector"><strong>Select Image:</strong></label>
 
-                </ul>
-                <!-- Tab Content for Images -->
-                <div class="tab-content mt-3">
-                    <div
-                            class="tab-pane fade show active"
-                            id="actualImage"
-                            role="tabpanel"
-                            aria-labelledby="actual-image-tab">
-                        <label>Generated Actual Image:</label>
-                        <div class="scrollable-container">
-                            <img th:if="${imageData != null}" th:src="'data:image/png;base64,' + ${imageData}" alt="Actual Image" />
-                            <div th:if="${imageData == null}" class="placeholder">No image available. Please convert to generate the actual image.</div>
-                        </div>
+                <!-- Check if there are any images in imageTabs -->
+                <th:block th:if="${imageTabs != null and not imageTabs.isEmpty()}">
+                    <select id="imageSelector" class="form-select">
+                        <option value="actualImage" th:data-src="'data:image/png;base64,' + ${imageData}">Actual Image</option>
+                        <option th:each="entry : ${imageTabs}"
+                                th:value="${entry.key.replace(' ', '')}"
+                                th:data-src="'data:image/png;base64,' + ${entry.value}"
+                                th:text="${entry.key}">
+                        </option>
+                    </select>
 
+                    <!-- Image Display -->
+                    <div class="scrollable-container mt-3">
+                        <img id="displayedImage" th:src="'data:image/png;base64,' + ${imageData}" alt="Selected Image" class="img-fluid" />
+                        <div id="noImageText" th:if="${imageData == null}" class="placeholder">No image available. Please convert to generate the image.</div>
                     </div>
-<!--                    <div class="tab-pane fade" id="testcaseImage" role="tabpanel" aria-labelledby="testcase-image-tab">-->
-<!--                        <label>Generated Test Case Image:</label>-->
-<!--                        <div class="scrollable-container">-->
-<!--                            <img th:if="${testImageData != null}" th:src="'data:image/png;base64,' + ${testImageData}" alt="Test Case Image" />-->
-<!--                            <div th:if="${testImageData == null}" class="placeholder">No test case image available. Please convert to generate the test case image.</div>-->
-<!--                        </div>-->
-<!--                    </div>-->
+                </th:block>
 
-                    <div th:each="entry, iterStat : ${imageTabs}"
-                         class="tab-pane fade"
-                         th:classappend="${iterStat.first} ? '' : ''"
-                         th:id="'tab' +${entry.key.replace(' ', '')}"
-                         role="tabpanel"
-                         th:aria-labelledby="${entry.key + '-tab'}">
-
-                        <label th:text="'Generated ' + ${entry.key} + ':'"></label>
-                        <div class="scrollable-container">
-                            <img th:if="${entry.value != null}" th:src="'data:image/png;base64,' + ${entry.value}" alt="Image" />
-                            <div th:if="${entry.value == null}" class="placeholder">No image available. Please convert to generate the image.</div>
-                        </div>
-                    </div>
-
-
-                </div>
+                <!-- Message if no images are available -->
+                <th:block th:if="${imageTabs == null or imageTabs.isEmpty()}">
+                    <div class="alert alert-warning mt-3">No images to display. Please click on Convert.</div>
+                </th:block>
                 <!-- Error Section -->
                 <div th:if="${error!=null}" class="alert alert-danger mt-4">
                     <h4 class="alert-heading">Error</h4>
                     <p th:text="${error}"></p>
                 </div>
             </div>
-        </div>
+
+
+
+
     </form>
 </div>
 
 
 
 </body>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const imageSelector = document.getElementById("imageSelector");
+        const displayedImage = document.getElementById("displayedImage");
+        const noImageText = document.getElementById("noImageText");
+
+        imageSelector.addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const imgSrc = selectedOption.getAttribute("data-src");
+
+            if (imgSrc && imgSrc !== "data:image/png;base64,null") {
+                displayedImage.src = imgSrc;
+                displayedImage.style.display = "block";
+                if (noImageText) noImageText.style.display = "none";
+            } else {
+                displayedImage.style.display = "none";
+                if (noImageText) noImageText.style.display = "block";
+            }
+        });
+    });
+</script>
+
 </html>
