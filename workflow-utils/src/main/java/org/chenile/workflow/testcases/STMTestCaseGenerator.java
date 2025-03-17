@@ -12,10 +12,7 @@ import org.chenile.workflow.puml.PumlStyler;
 import org.chenile.workflow.puml.STMPlantUmlSDGenerator;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 
@@ -47,11 +44,12 @@ public class STMTestCaseGenerator {
 
     public Map<String,String> visualizeTestcasesWithStateDiagram() throws Exception {
         List<Testcase> testcases = buildFlow();
-        Map<String,String> ret = new HashMap<>();
+        Map<String,String> ret = new TreeMap<>();
         for (Testcase testcase : testcases) {
             String steps = testcase.allSteps.stream()
                     .map(step -> step.event)
                     .collect(Collectors.joining("->"));
+            steps = String.format("%03d:%s",testcase.id,steps);
             ret.put(steps,visualizeTestcasesWithStateDiagram(testcase));
         }
         return ret;

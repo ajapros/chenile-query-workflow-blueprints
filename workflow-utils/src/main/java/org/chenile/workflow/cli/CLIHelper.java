@@ -8,6 +8,7 @@ import org.chenile.stm.exception.STMException;
 import org.chenile.stm.impl.*;
 import org.chenile.workflow.puml.STMPlantUmlSDGenerator;
 import org.chenile.workflow.testcases.STMTestCaseGenerator;
+import org.chenile.workflow.testcases.Testcase;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -85,6 +86,16 @@ public class CLIHelper {
     public String renderTestCases(CLIParams params) throws Exception {
         process(params);
         return this.stmTestCaseGenerator.toTestCase();
+    }
+
+    public Map<String,Object> toMap(CLIParams params) throws Exception {
+        process(params);
+        return this.stmFlowStore.toMap();
+    }
+
+    public List<Testcase> renderTestCasesAsObject(CLIParams params) throws Exception {
+        process(params);
+        return this.stmTestCaseGenerator.buildFlow();
     }
 
     public void process(CLIParams params) throws Exception {
