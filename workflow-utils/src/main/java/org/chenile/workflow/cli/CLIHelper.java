@@ -188,13 +188,13 @@ public class CLIHelper {
 
     private void loadStylingPropertiesFromFile(CLIParams params) throws Exception{
         try (InputStream inputStream = Files.newInputStream(params.stylingFile.toPath())){
-            this.generator.transitionStyler.load(inputStream);
+            this.generator.pumlStyler.load(inputStream);
         }
     }
 
     private void loadStylingPropertiesFromText(CLIParams params) throws Exception{
         try (InputStream inputStream = new ByteArrayInputStream(params.stylingPropertiesText.getBytes())){
-            this.generator.transitionStyler.load(inputStream);
+            this.generator.pumlStyler.load(inputStream);
         }
     }
 

@@ -17,12 +17,13 @@ import java.util.Map;
 public class PumlStyler {
 
     public static final String EQUALS = "==";
-    public String equals = EQUALS;
+
 
     public static class StyleRules {
         public List<StyleRule> rules = new ArrayList<>();
     }
     public static class StyleRule {
+        public String id;
         public String expression;
         public StyleElements style;
     }
@@ -30,6 +31,7 @@ public class PumlStyler {
         public int thickness; // in pixels
         public String color; // any valid PUML color code or Hex code
         public String lineStyle;// can be dotted or bold
+        public String border ;
     }
 
     public StyleRules styleRules = new StyleRules();
@@ -71,13 +73,32 @@ public class PumlStyler {
      * @return a styling string of the form indicated above.
      */
     public String getStateStyle(Map<String,String> md){
-        StyleElements elements = getStyle(md);
-        if (elements == null) return "";
+        StyleRule rule = getStyle(md);
+        if (rule == null) return "";
+        StyleElements elements = rule.style;
+        String s = " <<" + rule.id + ">> ";
+        if(elements.lineStyle != null){
+            s += " ##[" + elements.lineStyle + "]";
+        }
+        return s;
+        /*
         String s = " ";
         if (elements.color != null)s += "#" + elements.color;
-        if (elements.lineStyle != null) s += "##[" + elements.lineStyle + "]";
+        boolean doubleHash = false;
+        if (elements.lineStyle != null) {
+            s += "##[" + elements.lineStyle + "]" ;
+            doubleHash = true;
+        }
+        if (elements.border != null){
+            if (!doubleHash) {
+                s += "##";
+                doubleHash = true;
+            }
+            s += elements.border;
+        }
         s += " " ;
         return s;
+         */
     }
 
     /**
@@ -92,21 +113,45 @@ public class PumlStyler {
      * @return a styling string of the form indicated above.
      */
     public String getConnectionStyle(Map<String,String> md) {
-        StyleElements elements = getStyle(md);
-        if (elements == null) return "";
+        StyleRule rule = getStyle(md);
+        if (rule == null) return "";
+        StyleElements elements = rule.style;
         return "[" +
                 ((elements.thickness > 0)? "thickness=" + elements.thickness + "," : "")
                 +((elements.color != null)?  "#" + elements.color:"")
                 + "]";
     }
 
-    private StyleElements getStyle(Map<String,String> md) {
+    private StyleRule getStyle(Map<String,String> md) {
         for (StyleRule rule : styleRules.rules) {
-            String[] arr = rule.expression.split(equals);
+            String[] arr = rule.expression.split(EQUALS);
             if (arr[1].equals(md.get(arr[0]))) {
-                return rule.style;
+                return rule;
             }
         }
         return null;
+    }
+    private int ruleIndex = 1;
+    public String generateStereoTypes(){
+        StringBuilder s = new StringBuilder();
+        for (StyleRule rule : styleRules.rules) {
+            if (rule.id == null) rule.id = "__rule__" + ruleIndex++;
+
+            if(rule.style.border != null){
+                s.append("BorderColor<<").append(rule.id).append(">> ").append(rule.style.border).append("\n");
+            }
+            if(rule.style.color != null){
+                s.append("BackgroundColor<<").append(rule.id).append(">> ").append(rule.style.color).append("\n");
+            }
+            if(rule.style.thickness != 0){
+                s.append("BorderThickness<<").append(rule.id).append(">> ").append(rule.style.thickness).append("\n");
+            }
+            /**
+            if(rule.style.lineStyle != null){
+                s.append("BorderStyle<<").append(rule.id).append(">> ").append(rule.style.lineStyle).append("\n");
+            }
+            **/
+        }
+        return s.toString();
     }
 }

@@ -16,7 +16,7 @@ public class STMPlantUmlSDGenerator {
 
     private final STMFlowStore stmFlowStore ;
     private final Map<String,Boolean> notOrphaned = new HashMap<>();
-    public PumlStyler transitionStyler = new PumlStyler();
+    public PumlStyler pumlStyler = new PumlStyler();
     public STMPlantUmlSDGenerator(STMFlowStore flowStore){
         this.stmFlowStore = flowStore;
         findIncomingForAllStates();
@@ -54,6 +54,7 @@ public class STMPlantUmlSDGenerator {
             return stringBuilder.toString();
         }
         public  StateStringBuilder printStyles(){
+            String s = pumlStyler.generateStereoTypes();
             stringBuilder.append(""" 
                <style>
                     diamond {
@@ -67,8 +68,10 @@ public class STMPlantUmlSDGenerator {
                   BorderColor<<MAIN_PATH>> Peru
                   BackgroundColor<<MAIN_PATH>> Bisque
                   BackgroundColor<<orphaned>> OrangeRed
+                  %s
                  }
-               """);
+               """.formatted(s));
+
             return this;
         }
         public StateStringBuilder renderStates(){
@@ -203,11 +206,11 @@ public class STMPlantUmlSDGenerator {
     }
 
     private String getConnectionStyle(Map<String,String> md) {
-        return transitionStyler.getConnectionStyle(md);
+        return pumlStyler.getConnectionStyle(md);
     }
 
     private String getStateStyle(Map<String,String> md) {
-        return transitionStyler.getStateStyle(md);
+        return pumlStyler.getStateStyle(md);
     }
 
     private boolean checkForStates(Transition t){

@@ -63,8 +63,8 @@ public class STMTestCaseGenerator {
         PumlStyler.StyleRule styleRule = new PumlStyler.StyleRule();
         styleRule.expression = "testcase=="+ testcase.id;
         styleRule.style = elements;
-        plantUmlSDGenerator.transitionStyler.clear();
-        plantUmlSDGenerator.transitionStyler.addRule(styleRule);
+        plantUmlSDGenerator.pumlStyler.clear();
+        plantUmlSDGenerator.pumlStyler.addRule(styleRule);
         EnablementStrategy enablementStrategy = getEnablementStrategy(testcase);
         flowStore.setEnablementStrategy(enablementStrategy);
         return plantUmlSDGenerator.toStateDiagram();
