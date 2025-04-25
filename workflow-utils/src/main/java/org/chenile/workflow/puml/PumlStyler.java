@@ -10,14 +10,13 @@ import java.util.Map;
 
 /**
  * Allows for styling the State Diagrams in Plant UML.
- * The state diagram can be styled using an XML Properties file or a normal properties
- * file if the delimiter is set to something other than double-equals
- *
+ * Style of a state or transition is determined by the expression. The actual style is
+ * applied on the rule using PUML stereotypes.
  */
 public class PumlStyler {
 
     public static final String EQUALS = "==";
-
+    public static final String LABEL = "label";
 
     public static class StyleRules {
         public List<StyleRule> rules = new ArrayList<>();
@@ -32,6 +31,8 @@ public class PumlStyler {
         public String color; // any valid PUML color code or Hex code
         public String lineStyle;// can be dotted or bold
         public String border ;
+        public String stateTextColor;
+        public String eventTextColor; // color of the transition text
     }
 
     public StyleRules styleRules = new StyleRules();
@@ -73,7 +74,7 @@ public class PumlStyler {
      * @return a styling string of the form indicated above.
      */
     public String getStateStyle(Map<String,String> md){
-        StyleRule rule = getStyle(md);
+        StyleRule rule = findMatchingStyle(md);
         if (rule == null) return "";
         StyleElements elements = rule.style;
         String s = " <<" + rule.id + ">> ";
@@ -81,24 +82,6 @@ public class PumlStyler {
             s += " ##[" + elements.lineStyle + "]";
         }
         return s;
-        /*
-        String s = " ";
-        if (elements.color != null)s += "#" + elements.color;
-        boolean doubleHash = false;
-        if (elements.lineStyle != null) {
-            s += "##[" + elements.lineStyle + "]" ;
-            doubleHash = true;
-        }
-        if (elements.border != null){
-            if (!doubleHash) {
-                s += "##";
-                doubleHash = true;
-            }
-            s += elements.border;
-        }
-        s += " " ;
-        return s;
-         */
     }
 
     /**
@@ -113,7 +96,7 @@ public class PumlStyler {
      * @return a styling string of the form indicated above.
      */
     public String getConnectionStyle(Map<String,String> md) {
-        StyleRule rule = getStyle(md);
+        StyleRule rule = findMatchingStyle(md);
         if (rule == null) return "";
         StyleElements elements = rule.style;
         return "[" +
@@ -122,7 +105,27 @@ public class PumlStyler {
                 + "]";
     }
 
-    private StyleRule getStyle(Map<String,String> md) {
+    /**
+     * Renders the text with optional style.
+     * @param text the event to render
+     * @return the decorated eventId.
+     * If a metadata called label is present, then the text returned is the value of the label.
+     */
+    public String printEventText(String text,Map<String,String> md){
+        String e = (md != null && md.get(LABEL) != null)? md.get(LABEL) : text;
+        StyleRule rule = findMatchingStyle(md);
+        if (rule == null || rule.style.eventTextColor == null) return e;
+        return "<color:" + rule.style.eventTextColor + ">**" + e + "**";
+    }
+
+    public String printStateText(String text,Map<String,String> md){
+        String e = (md != null && md.get(LABEL) != null)? md.get(LABEL) : text;
+        StyleRule rule = findMatchingStyle(md);
+        if (rule == null || rule.style.stateTextColor == null) return e;
+        return "\"<color:" + rule.style.stateTextColor + ">**" + e + "**\" as " + text;
+    }
+
+    private StyleRule findMatchingStyle(Map<String,String> md) {
         for (StyleRule rule : styleRules.rules) {
             String[] arr = rule.expression.split(EQUALS);
             if (arr[1].equals(md.get(arr[0]))) {
@@ -131,8 +134,9 @@ public class PumlStyler {
         }
         return null;
     }
-    private int ruleIndex = 1;
+
     public String generateStereoTypes(){
+        int ruleIndex = 1;
         StringBuilder s = new StringBuilder();
         for (StyleRule rule : styleRules.rules) {
             if (rule.id == null) rule.id = "__rule__" + ruleIndex++;
@@ -146,7 +150,7 @@ public class PumlStyler {
             if(rule.style.thickness != 0){
                 s.append("BorderThickness<<").append(rule.id).append(">> ").append(rule.style.thickness).append("\n");
             }
-            /**
+            /*
             if(rule.style.lineStyle != null){
                 s.append("BorderStyle<<").append(rule.id).append(">> ").append(rule.style.lineStyle).append("\n");
             }

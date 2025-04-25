@@ -60,6 +60,9 @@ public class STMTestCaseGenerator {
         elements.thickness = 5;
         elements.color = randomColor();
         elements.lineStyle = "bold";
+        elements.border = "white";
+        elements.stateTextColor = "white";
+        elements.eventTextColor = elements.color;
         PumlStyler.StyleRule styleRule = new PumlStyler.StyleRule();
         styleRule.expression = "testcase=="+ testcase.id;
         styleRule.style = elements;
@@ -72,13 +75,17 @@ public class STMTestCaseGenerator {
 
     private static EnablementStrategy getEnablementStrategy(Testcase testcase) throws Exception {
         ConfigProviderImpl configProvider = new ConfigProviderImpl();
+        int stepNum = 0;
         for (TestcaseStep s: testcase.allSteps) {
+            stepNum++;
             configProvider.setProperties("""
+                    %s.%s.%s.meta.label=#%d %s
                     %s.%s.%s.meta.testcase=%s
                     %s.%s.meta.testcase=%s
                     %s.%s.meta.testcase=%s
-                    """.formatted(s.transition.getFlowId(),
-                    s.transition.getStateId(),s.transition.getEventId(), testcase.id,
+                    """.formatted(
+                    s.transition.getFlowId(), s.transition.getStateId(),s.transition.getEventId(), stepNum,s.transition.getEventId(),
+                    s.transition.getFlowId(), s.transition.getStateId(),s.transition.getEventId(), testcase.id,
                     s.transition.getFlowId(),s.transition.getStateId(), testcase.id,
                     s.transition.getNewFlowId(),s.transition.getNewStateId(), testcase.id));
         }

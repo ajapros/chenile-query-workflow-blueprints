@@ -76,7 +76,7 @@ public class STMPlantUmlSDGenerator {
         }
         public StateStringBuilder renderStates(){
             for(StateDescriptor sd: stmFlowStore.getAllStates()) {
-                stringBuilder.append(STATE).append(sd.getId());
+                stringBuilder.append(STATE).append(printStateText(sd.getId(),sd.getMetadata()));
                 if (!notOrphaned.get(sd.getId())){
                     stringBuilder.append(" <<orphaned>> ").append("\n");
                 }
@@ -122,7 +122,7 @@ public class STMPlantUmlSDGenerator {
                         if (isInMainPath(t)){
                             stringBuilder.append("<color:Peru>**").append(t.getEventId()).append("**");
                         }else {
-                            stringBuilder.append(t.getEventId());
+                            stringBuilder.append(printEventText(t.getEventId(),t.getMetadata()));
                         }
                         stringBuilder.append("\n");
                     }
@@ -133,6 +133,14 @@ public class STMPlantUmlSDGenerator {
                 }
             }
             return this;
+        }
+
+        private String printStateText(String text,Map<String,String> md){
+            return pumlStyler.printStateText(text,md);
+        }
+
+        private String printEventText(String text,Map<String,String> md){
+            return pumlStyler.printEventText(text,md);
         }
 
         public StateStringBuilder printLegend(){
