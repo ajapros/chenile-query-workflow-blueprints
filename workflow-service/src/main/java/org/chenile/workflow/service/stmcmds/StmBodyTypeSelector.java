@@ -39,51 +39,58 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 	@Override
 	public void execute(ChenileExchange exchange) throws Exception {
 		String eventId = exchange.getHeader("eventID",String.class);
+		TypeReference<?> typeReference = getPayloadBodyType(eventId);
+		if (null != typeReference) {
+			exchange.setBodyType(typeReference);
+		}
+	}
+
+	public  TypeReference<?> getPayloadBodyType(String eventId) throws ClassNotFoundException {
 		EventInformation eventInformation = stmActionsInfoProvider.getEventInformation(eventId);
-		if (null != eventInformation) {
-			String bodyTypeClass = eventInformation.getMetadata().get("bodyType");
+		if (null != eventInformation &&
+				eventInformation.getMetadata().get("bodyType")!=null) {
+			String bodyTypeClass = (String)eventInformation.getMetadata().get("bodyType");
 			Class<?> bodyType = Class.forName(bodyTypeClass);
-			exchange.setBodyType(new TypeReference<Object>() {
+			return new TypeReference<>() {
 
 				@Override
 				public Type getType() {
 					return bodyType;
 				}
-				
-			});
-		}else {
-			checkIfPayloadTypeCanBeDerived(exchange,eventId);
+
+			};
 		}
+		return checkIfPayloadTypeCanBeDerived(eventId);
 	}
 
 
 	/**
 	 *
-	 * @param exchange - the exchange to which we need to set the TypeReference of the body type
-	 * <p>This method works only if the eventID is the same as the name of the STMTransitionAction in
+	 * This method works only if the eventID is the same as the name of the STMTransitionAction in
 	 * the bean factory. It only works if the STMTransitionAction extends {@link AbstractSTMTransitionAction}.
 	 * It computes the body type from the second argument of the {@link AbstractSTMTransitionAction#transitionTo} method that was
 	 * overridden by the transition action.</p>
 	 */
-	private void checkIfPayloadTypeCanBeDerived(ChenileExchange exchange, String eventId) {
-		if (stmTransitionActionResolver == null) return;
+	private TypeReference<?> checkIfPayloadTypeCanBeDerived(String eventId) {
+		if (stmTransitionActionResolver == null) return null;
 		try{
 			Object bean = stmTransitionActionResolver.getBean(eventId);
-			if (bean == null) return;
-			if (!AbstractSTMTransitionAction.class.isAssignableFrom(bean.getClass()))return;
+			if (bean == null) return null;
+			if (!AbstractSTMTransitionAction.class.isAssignableFrom(bean.getClass()))return null;
 			Method[] methods = bean.getClass().getDeclaredMethods();
 			for (Method m: methods){
 				if (!m.getName().equals("transitionTo"))continue;
 				if (m.isBridge()) continue;
 				Type[] types = m.getGenericParameterTypes();
-				exchange.setBodyType(new TypeReference<Object>() {
+				return new TypeReference<Object>() {
 					@Override
 					public Type getType() {
 						return types[1];
 					}
-				});
-				}
+				};
+			}
 
 		}catch(Exception ignored){}
+		return null;
 	}
 }
