@@ -4,8 +4,10 @@ import picocli.CommandLine;
 import java.io.File;
 import static picocli.CommandLine.*;
 
-@Command(name = "stm-cli", mixinStandardHelpOptions = true, version = "2.0.1",
-        description = "Reads a State Definition file and allows a few operations on it. STM is not created. Hence components don't have to be in the class path.")
+@Command(name = "stm-cli", mixinStandardHelpOptions = true,
+        versionProvider = VersionProvider.class,
+        description = "Reads a State Definition file and allows a few operations on it.\n " +
+            "STM is not created. Hence components don't have to be in the class path.")
 public class CLI implements Runnable {
     @ArgGroup(exclusive = true, multiplicity = "1")
     Exclusive exclusive;
