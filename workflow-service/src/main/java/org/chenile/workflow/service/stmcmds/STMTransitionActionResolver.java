@@ -15,6 +15,7 @@ public class STMTransitionActionResolver {
     private String prefix = "";
     @Autowired private ApplicationContext applicationContext;
     private STMTransitionAction<?> defaultSTMTransitionAction;
+    private String[] otherPrefixes;
     public STMTransitionActionResolver(String prefix){
         this.prefix = prefix;
     }
@@ -25,7 +26,7 @@ public class STMTransitionActionResolver {
 
     private  String beanName(String eventId){
         if (prefix.isEmpty()) return eventId;
-        return prefix + eventId.substring(0,1).toUpperCase() + eventId.substring(1);
+        return prefix +  eventId.substring(0,1).toUpperCase() + eventId.substring(1);
     }
 
     public STMTransitionAction<?> getBean(String eventId) {
