@@ -17,7 +17,7 @@ import static org.springframework.util.StringUtils.capitalize;
 public class STMTransitionActionResolver {
 
     private final String prefix;
-    private final String[] subPrefixes;
+    private final String[] otherPrefixes;
     private final STMTransitionAction<?> defaultAction;
 
     @Autowired private ApplicationContext applicationContext;
@@ -31,11 +31,12 @@ public class STMTransitionActionResolver {
         this(prefix, defaultAction, new String[0]);
     }
 
-    public STMTransitionActionResolver(String prefix, STMTransitionAction<?> defaultAction, String... subPrefixes) {
+    public STMTransitionActionResolver(String prefix, STMTransitionAction<?> defaultAction, String... otherPrefixes) {
         this.prefix = prefix != null ? prefix : "";
         this.defaultAction = defaultAction;
-        this.subPrefixes = subPrefixes != null ? subPrefixes : new String[0];
+        this.otherPrefixes = otherPrefixes != null ? otherPrefixes : new String[0];
     }
+
 
     public STMTransitionAction<?> getBean(String eventId) {
         try {
@@ -57,10 +58,10 @@ public class STMTransitionActionResolver {
     }
 
     private String resolvePrefixFromContext() {
-        if (subPrefixes.length == 0) return prefix;
+        if (otherPrefixes.length == 0) return prefix;
 
         Map<String, String> contextMap = contextContainer.toMap();
-        for (String key : subPrefixes) {
+        for (String key : otherPrefixes) {
             String value = contextMap.get("x-" + key);
             if (value != null) {
                 return value + capitalize(prefix);

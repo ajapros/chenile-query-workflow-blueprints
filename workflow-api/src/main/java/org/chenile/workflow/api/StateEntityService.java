@@ -54,6 +54,7 @@ public interface StateEntityService<T extends StateEntity> {
 	public List<Map<String, String>> getAllowedActionsAndMetadata(State state);
 	
 	public List<Map<String, String>> getAllowedActionsAndMetadata(String id);
+	public Map<String,Object> config();
 	
 
 }

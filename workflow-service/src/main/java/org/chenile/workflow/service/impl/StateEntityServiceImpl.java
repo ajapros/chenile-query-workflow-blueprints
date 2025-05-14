@@ -149,4 +149,9 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 		}
 		return makeStateEntityResponse(entity);
 	}
+
+	@Override
+	public Map<String,Object> config(){
+		return this.stmActionsInfoProvider.toMap();
+	}
 }
