@@ -25,8 +25,8 @@ public class CLI implements Runnable {
         @Option(names = {"-r", "--render-tests-as-state"},paramLabel = "render-tests-as-state", description = "Renders state diagrams for all generated test cases")
         private boolean renderTestsAsStateDiagram = false;
     }
-    @Parameters(index = "0", paramLabel = "<XML File name>", description = "The XML filename to read. Must be a valid states XML. Component names in file will be ignored.")
-    private File xmlFileName;
+    @Parameters(index = "0..*", paramLabel = "<XML File names>", description = "The XML filename to read. Must be a valid states XML. Component names in file will be ignored.")
+    private File[] xmlFileNames;
     @Option(names = {"-o", "--output"},paramLabel = "output-file-or-directory", description = "Writes output to the specified file or directory for multiple files")
     private String outputFile;
     @Option(names = {"-S", "--styling"},paramLabel = "Styling-rules-file", description = "Use the JSON file for setting styles according to metadata in states and transitions")
@@ -68,7 +68,7 @@ public class CLI implements Runnable {
         params.prefix = this.prefix;
         params.stateForAllowedActions = this.exclusive.stateForAllowedActions;
         params.stylingFile = this.stylingFile;
-        params.xmlFile = xmlFileName;
+        params.xmlFiles = xmlFileNames;
         return params;
     }
 }

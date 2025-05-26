@@ -1,6 +1,7 @@
 package org.chenile.workflow.service.stmcmds;
 
 import org.chenile.core.context.ContextContainer;
+import org.chenile.stm.action.STMAutomaticStateComputation;
 import org.chenile.stm.action.STMTransitionAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,24 +38,32 @@ public class STMTransitionActionResolver {
         this.otherPrefixes = otherPrefixes != null ? otherPrefixes : new String[0];
     }
 
+    public STMAutomaticStateComputation<?> resolveAutomaticStateDescriptor(String actionStateName){
+        return (STMAutomaticStateComputation<?>) internallyResolveBean(actionStateName);
+    }
 
     public STMTransitionAction<?> getBean(String eventId) {
+        STMTransitionAction<?> action = (STMTransitionAction<?>) internallyResolveBean(eventId);
+        return (action == null)? defaultAction : action;
+    }
+
+    private Object internallyResolveBean(String name) {
         try {
             String contextBasedPrefix = resolvePrefixFromContext();
-            String beanNameWithContextPrefix = buildBeanName(contextBasedPrefix, eventId);
+            String beanNameWithContextPrefix = buildBeanName(contextBasedPrefix, name);
 
             if (applicationContext.containsBean(beanNameWithContextPrefix)) {
-                return (STMTransitionAction<?>) applicationContext.getBean(beanNameWithContextPrefix);
+                return applicationContext.getBean(beanNameWithContextPrefix);
             }
 
-            String fallbackBeanName = buildBeanName(prefix, eventId);
+            String fallbackBeanName = buildBeanName(prefix, name);
             if (applicationContext.containsBean(fallbackBeanName)) {
-                return (STMTransitionAction<?>) applicationContext.getBean(fallbackBeanName);
+                return applicationContext.getBean(fallbackBeanName);
             }
         } catch (Exception ignored) {
-            return defaultAction;
+            return null;
         }
-        return defaultAction;
+        return null;
     }
 
     private String resolvePrefixFromContext() {

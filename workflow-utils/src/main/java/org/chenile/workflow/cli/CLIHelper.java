@@ -18,6 +18,8 @@ import java.util.Map;
 
 public class CLIHelper {
 
+    private XmlFlowReader xmlFlowReader = null;
+
     public void allowedActions(CLIParams params, String outputFile) throws Exception {
         out(allowedActions(params),outputFile);
     }
@@ -101,13 +103,21 @@ public class CLIHelper {
     public void process(CLIParams params) throws Exception {
         if (params.xmlText != null)
             processText(params);
-        else if (params.xmlFile != null)
-            processXmlFile(params);
+        else if (params.xmlFiles != null)
+            processXmlFiles(params);
     }
 
-    private void processXmlFile(CLIParams params) throws Exception {
-        try (InputStream inputStream = Files.newInputStream(params.xmlFile.toPath())) {
-            processStream(inputStream,params);
+    private void processXmlFiles(CLIParams params) throws Exception {
+        boolean first = true;
+        for (File xmlFile : params.xmlFiles) {
+            try (InputStream inputStream = Files.newInputStream(xmlFile.toPath())) {
+                if (first) {
+                    processStream(inputStream, params);
+                    first = false;
+                }else {
+                    this.xmlFlowReader.parse(inputStream);
+                }
+            }
         }
     }
 
@@ -121,7 +131,7 @@ public class CLIHelper {
         STMFlowStoreImpl stmFlowStoreImpl = obtainFlowStore(params);
         XmlFlowReader xfr = new XmlFlowReader(stmFlowStoreImpl);
         xfr.parse(inputStream);
-        initProcessors(stmFlowStoreImpl);
+        initProcessors(stmFlowStoreImpl,xfr);
     }
 
     private void out(String s, String outputFile) throws IOException{
@@ -198,11 +208,12 @@ public class CLIHelper {
         }
     }
 
-    private void initProcessors(STMFlowStoreImpl stmFlowStoreImpl) {
+    private void initProcessors(STMFlowStoreImpl stmFlowStoreImpl,XmlFlowReader flowReader) {
         this.generator = new STMPlantUmlSDGenerator(stmFlowStoreImpl);
         this.infoProvider = new STMActionsInfoProvider(stmFlowStoreImpl);
         this.stmTestCaseGenerator = new STMTestCaseGenerator(stmFlowStoreImpl);
         this.stmFlowStore = stmFlowStoreImpl;
+        this.xmlFlowReader = flowReader;
     }
     private STMPlantUmlSDGenerator generator;
     private STMActionsInfoProvider infoProvider;

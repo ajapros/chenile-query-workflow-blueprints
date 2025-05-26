@@ -71,7 +71,7 @@ public class StmPumlGenerator extends AbstractMojo {
 
     private CLIParams makeCLIParams(File xmlFile){
         CLIParams params = new CLIParams();
-        params.xmlFile = xmlFile;
+        params.xmlFiles = new File[] {xmlFile};
         params.prefix = this.prefix;
         params.stylingFile = this.stylingProperties;
         params.enablementPropertiesFile = this.enablementProperties;

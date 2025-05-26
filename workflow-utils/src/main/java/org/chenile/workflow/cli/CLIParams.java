@@ -3,7 +3,7 @@ package org.chenile.workflow.cli;
 import java.io.File;
 
 public class CLIParams {
-    public File xmlFile;
+    public File[] xmlFiles;
     public String xmlText;
     public String stateForAllowedActions;
     public File stylingFile;

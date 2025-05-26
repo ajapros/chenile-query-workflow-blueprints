@@ -77,7 +77,9 @@ public class STMPlantUmlSDGenerator {
         public StateStringBuilder renderStates(){
             for(StateDescriptor sd: stmFlowStore.getAllStates()) {
                 stringBuilder.append(STATE).append(printStateText(sd.getId(),sd.getMetadata()));
-                if (!notOrphaned.get(sd.getId())){
+                Boolean b = notOrphaned.get(sd.getId());
+                boolean orphaned = (b != null) && !b;
+                if (orphaned){
                     stringBuilder.append(" <<orphaned>> ").append("\n");
                 }
                 else if (!sd.isManualState()){
