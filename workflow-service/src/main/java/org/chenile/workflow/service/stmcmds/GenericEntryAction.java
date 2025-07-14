@@ -13,9 +13,18 @@ public class GenericEntryAction<T extends ExtendedStateEntity> implements STMAct
 
 	private final EntityStore<T> entityStore;
 	private final STMActionsInfoProvider stmActionsInfoProvider;
+	private final PostSaveHook<T> postSaveHook;
+
 	public  GenericEntryAction(EntityStore<T> entityStore, STMActionsInfoProvider stmActionsInfoProvider) {
 		this.entityStore = entityStore;
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
+		this.postSaveHook = null;
+	}
+
+	public  GenericEntryAction(EntityStore<T> entityStore, STMActionsInfoProvider stmActionsInfoProvider,PostSaveHook<T> postSaveHook) {
+		this.entityStore = entityStore;
+		this.stmActionsInfoProvider = stmActionsInfoProvider;
+		this.postSaveHook = postSaveHook;
 	}
 	
 	@Override
@@ -25,6 +34,7 @@ public class GenericEntryAction<T extends ExtendedStateEntity> implements STMAct
 		entity.setSlaLate(StateEntityHelper.getLateTimeInHours(stmActionsInfoProvider, entity.getCurrentState()));
 		entity.setSlaTendingLate(StateEntityHelper.getGettingLateTimeInHours(stmActionsInfoProvider, entity.getCurrentState()));
 		entityStore.store(entity);
+		if (postSaveHook != null)postSaveHook.execute(entity,null);
 	}
 
 

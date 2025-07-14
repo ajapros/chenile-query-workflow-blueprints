@@ -42,6 +42,10 @@ public class STMTransitionActionResolver {
         return (STMAutomaticStateComputation<?>) internallyResolveBean(actionStateName);
     }
 
+    public PostSaveHook<?> resolvePostSaveHook(String actionStateName){
+        return (PostSaveHook<?>) internallyResolveBean(actionStateName);
+    }
+
     public STMTransitionAction<?> getBean(String eventId) {
         STMTransitionAction<?> action = (STMTransitionAction<?>) internallyResolveBean(eventId);
         return (action == null)? defaultAction : action;
@@ -84,5 +88,6 @@ public class STMTransitionActionResolver {
                 ? eventId
                 : resolvedPrefix + capitalize(eventId);
     }
+
 
 }
