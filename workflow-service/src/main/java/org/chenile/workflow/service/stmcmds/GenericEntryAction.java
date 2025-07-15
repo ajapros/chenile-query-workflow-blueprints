@@ -7,6 +7,8 @@ import org.chenile.stm.action.STMAction;
 import org.chenile.stm.impl.STMActionsInfoProvider;
 import org.chenile.utils.entity.model.ExtendedStateEntity;
 import org.chenile.utils.entity.service.EntityStore;
+import org.chenile.workflow.model.ContainsTransientMap;
+import org.chenile.workflow.model.TransientMap;
 import org.chenile.workflow.service.impl.StateEntityHelper;
 
 public class GenericEntryAction<T extends ExtendedStateEntity> implements STMAction<T>{
@@ -34,8 +36,15 @@ public class GenericEntryAction<T extends ExtendedStateEntity> implements STMAct
 		entity.setSlaLate(StateEntityHelper.getLateTimeInHours(stmActionsInfoProvider, entity.getCurrentState()));
 		entity.setSlaTendingLate(StateEntityHelper.getGettingLateTimeInHours(stmActionsInfoProvider, entity.getCurrentState()));
 		entityStore.store(entity);
-		if (postSaveHook != null)postSaveHook.execute(entity,null);
+		invokePostHook(entity);
 	}
 
-
+	protected void invokePostHook(T entity){
+		if (postSaveHook == null)return;
+		TransientMap map = null;
+		if (entity instanceof ContainsTransientMap e){
+			 map = e.getTransientMap();
+		}
+		postSaveHook.execute(entity,map);
+	}
 }

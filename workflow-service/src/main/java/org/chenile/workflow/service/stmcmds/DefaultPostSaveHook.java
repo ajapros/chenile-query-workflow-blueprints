@@ -1,6 +1,7 @@
 package org.chenile.workflow.service.stmcmds;
 
 import org.chenile.stm.StateEntity;
+import org.chenile.workflow.model.TransientMap;
 
 public class DefaultPostSaveHook<StateEntityType extends StateEntity> implements PostSaveHook<StateEntityType>{
     private final STMTransitionActionResolver resolver;
@@ -8,7 +9,7 @@ public class DefaultPostSaveHook<StateEntityType extends StateEntity> implements
         this.resolver = resolver;
     }
     @Override
-    public void execute(StateEntityType entity, Object payload) {
+    public void execute(StateEntityType entity, TransientMap payload) {
         String stateId = entity.getCurrentState().getStateId();
         PostSaveHook<StateEntityType> postSaveHook =
                 (PostSaveHook<StateEntityType>) resolver.resolvePostSaveHook(stateId);
