@@ -12,6 +12,7 @@
 	<packaging>jar</packaging>
 
 	<name>Miscellaneous workflow utilities</name>
+	<description>Miscellaneous Workflow Utilities</description>
 	<build>
 		<resources>
 			<resource>
