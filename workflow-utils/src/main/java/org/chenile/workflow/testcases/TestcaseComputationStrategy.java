@@ -112,8 +112,9 @@ public class TestcaseComputationStrategy {
                               List<Testcase> testcaseList, Set<State> visitedStates){
         for (Transition transition : sd.getTransitions().values()) {
             State newState = new State(transition.getNewStateId(), transition.getNewFlowId());
-            if (newState.equals(state)) continue; // ignore self transitions
-            if (visitedStates.contains(newState)) return;
+            if (newState.equals(state)) continue;// ignore self transitions
+            if (visitedStates.contains(newState)) continue; // ignore if already visited
+            // this prevents infinite cycles
             addToNext(transition,newState,testcaseList, visitedStates);
         }
     }

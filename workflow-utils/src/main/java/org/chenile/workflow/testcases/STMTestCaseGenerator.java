@@ -4,13 +4,19 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import org.chenile.stm.EnablementStrategy;
+import org.chenile.stm.STMFlowStore;
 import org.chenile.stm.State;
+import org.chenile.stm.dummy.DummyStore;
 import org.chenile.stm.impl.ConfigBasedEnablementStrategy;
 import org.chenile.stm.impl.ConfigProviderImpl;
 import org.chenile.stm.impl.STMFlowStoreImpl;
+import org.chenile.stm.impl.XmlFlowReader;
 import org.chenile.workflow.puml.PumlStyler;
 import org.chenile.workflow.puml.STMPlantUmlSDGenerator;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.random.RandomGenerator;
@@ -140,6 +146,19 @@ public class STMTestCaseGenerator {
         State sd = flowStore.getInitialState(null);
         if(sd == null)return null;
         return testcaseComputationStrategy.toTestcases(sd);
+    }
+
+    public static void main(String[] args) throws Exception{
+        STMFlowStoreImpl store = new DummyStore();
+        XmlFlowReader reader = new XmlFlowReader(store);
+        File file = new File("/Users/rajashankarkolluru/stm-flows/tele-treatment.xml");
+        try(InputStream stream = new FileInputStream(file)){
+          reader.parse(stream);
+        }
+        STMTestCaseGenerator generator = new STMTestCaseGenerator(store);
+        State state = new State("CALL_PENDING","TELE_TREATMENT_FLOW");
+        List<Testcase> s = generator.testcaseComputationStrategy.toTestcases(state);
+        System.out.println(s);
     }
 
 }
