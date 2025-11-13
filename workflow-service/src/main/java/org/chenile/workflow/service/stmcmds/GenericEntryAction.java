@@ -2,6 +2,7 @@ package org.chenile.workflow.service.stmcmds;
 
 import java.util.Date;
 
+import org.chenile.stm.State;
 import org.chenile.stm.StateEntity;
 import org.chenile.stm.action.STMAction;
 import org.chenile.stm.impl.STMActionsInfoProvider;
@@ -28,23 +29,24 @@ public class GenericEntryAction<T extends ExtendedStateEntity> implements STMAct
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
 		this.postSaveHook = postSaveHook;
 	}
-	
+
 	@Override
-	public void execute(T entity) throws Exception {
+	public void execute(State startState, State endState, T entity) throws Exception {
 		// update the workflow related attributes into the entity before storing it
 		entity.setStateEntryTime(new Date());
 		entity.setSlaLate(StateEntityHelper.getLateTimeInHours(stmActionsInfoProvider, entity.getCurrentState()));
 		entity.setSlaTendingLate(StateEntityHelper.getGettingLateTimeInHours(stmActionsInfoProvider, entity.getCurrentState()));
 		entityStore.store(entity);
-		invokePostHook(entity);
+		invokePostHook(startState, endState, entity);
 	}
 
-	protected void invokePostHook(T entity){
+	protected void invokePostHook(State startState, State endState, T entity){
 		if (postSaveHook == null)return;
 		TransientMap map = null;
 		if (entity instanceof ContainsTransientMap e){
-			 map = e.getTransientMap();
+			map = e.getTransientMap();
 		}
-		postSaveHook.execute(entity,map);
+		postSaveHook.execute(startState,endState,entity,map);
 	}
+
 }
