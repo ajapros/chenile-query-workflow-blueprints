@@ -10,7 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Generates a PLANT UML state diagram for the State Transition Diagram
+ * Generates a PLANT UML state diagram for the State Transition Diagram.
+ * We let the PUML Styler give us all the styling based on styling.json.
+ * However, we support a "hard-coded" styling using MAIN_PATH for simplicity.
+ *
  */
 public class STMPlantUmlSDGenerator {
 
@@ -174,7 +177,12 @@ public class STMPlantUmlSDGenerator {
             }else {
                 stringBuilder.append(getConnectionStyle(t.getMetadata()));
             }
-            return stringBuilder.append("-> ");
+            StateDescriptor newState = stmFlowStore.getStateInfo(new State(t.getNewStateId(),
+                    t.getNewFlowId()));
+            if (newState.isManualState()){
+                stringBuilder.append("-");
+            }
+            return stringBuilder.append("> ");
         }
 
         private void printComponentProperties(StateDescriptor sd){
