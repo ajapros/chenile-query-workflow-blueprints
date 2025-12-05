@@ -119,6 +119,7 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 		try {
 			return sessionTemplate.selectList(queryName, filters);
 		}catch(Exception e){
+			logger.error("Cannot execute query",e);
 			throw new ServerException(ErrorCodes.CANNOT_EXECUTE_QUERY.getSubError(),
 					new Object[]{queryName,filters,e.getMessage()},e);
 		}
