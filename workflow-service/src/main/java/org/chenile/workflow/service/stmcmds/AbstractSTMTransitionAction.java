@@ -17,7 +17,12 @@ import java.util.TreeSet;
  * serves as a bridge for sub-classes to enforce a Paylaod Type. By extending this class, sub-classes
  * declare the precise Payload Type that they expect.
  * <p>Without this class. Payload type had to be declared in the STM configuration. The blue print
- * for STM assumes that all STM Transition Actions extend this class.</p>
+ * for STM assumes that all STM Transition Actions extend this class. This action is instantiated in
+ * spring using a convention that allows it to be discovered by {@link STMTransitionActionResolver}.</p>
+ * <p>This class also supports the notion of a chain of transition actions that can be attached to
+ * the same event. The class registers itself to the main event transition action using
+ * {@link #registerAction(String, int)}. An index determines the order of registration. The transition
+ * actions are executed in the order of the index starting from the first transition action.</p>
  * @param <StateEntityType> the sub-type of the state entity
  * @param <PayloadType> the type of payload
  */
@@ -26,27 +31,23 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
         implements STMTransitionAction<StateEntityType> {
     private final Set<OrderedCommand> cset = new TreeSet<>();
     @Autowired STMTransitionActionResolver stmTransitionActionResolver ;
-    private boolean initiateChain = false;
 
      @Override
     public final void doTransition(StateEntityType stateEntity, Object transitionParam, State startState,
                              String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
-        if (initiateChain){
+        if (!cset.isEmpty()){
             initExecuteChain(stateEntity, transitionParam, startState, eventId, endState, stm, transition);
         }else
             transitionTo(stateEntity, (PayloadType) transitionParam, startState,
                 eventId, endState,  stm, transition);
 
     }
-
-    public void addCommand(int index,AbstractSTMTransitionAction<StateEntityType,PayloadType> action){
-        initiateChain = true;
+    private void addCommand(int index,AbstractSTMTransitionAction<StateEntityType,PayloadType> action){
         if (cset.isEmpty()){
             cset.add(new OrderedCommand(index,this));
         }
-        cset.add(new OrderedCommand(index,this));
+        cset.add(new OrderedCommand(index,action));
     }
-
     private void initExecuteChain(StateEntityType stateEntity, Object transitionParam, State startState,
                                   String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
         for (OrderedCommand oc: cset){
@@ -54,7 +55,6 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
                     endState,stm,transition);
         }
     }
-
     /**
      * Implement this method to start using your expected payload type.
      * @param stateEntity the state entity that has been passed to STM
@@ -69,7 +69,6 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
     public abstract void transitionTo(StateEntityType stateEntity,
               PayloadType transitionParam, State startState, String eventId, State endState,
               STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception;
-
      public class OrderedCommand implements Comparable<OrderedCommand> {
          /**
           * This class is needed to ensure that the commands are retrieved in the correct order
@@ -86,7 +85,7 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
          }
      }
 
-     private void registerAction(String eventId, int index){
+     protected void registerAction(String eventId, int index){
          AbstractSTMTransitionAction<StateEntityType,PayloadType> action =
                  (AbstractSTMTransitionAction<StateEntityType,PayloadType>) stmTransitionActionResolver.getBean(eventId);
          if (action == null)
@@ -95,5 +94,4 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
              throw new ConfigurationException(5002,"Index 0 is not allowed");
          action.addCommand(index,this);
      }
-
 }
