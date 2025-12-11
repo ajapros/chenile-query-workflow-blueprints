@@ -12,7 +12,6 @@ import org.chenile.stm.StateEntity;
 import org.chenile.stm.action.STMTransitionAction;
 import org.chenile.stm.model.Transition;
 import org.chenile.workflow.activities.model.ActivityEnabledStateEntity;
-import org.chenile.workflow.activities.model.ActivityLog;
 import org.chenile.workflow.param.MinimalPayload;
 import org.chenile.workflow.service.activities.ActivityChecker;
 import org.chenile.workflow.service.stmcmds.dto.TransitionContext;
