@@ -1,12 +1,10 @@
 package org.chenile.workflow.service.stmcmds;
 
-import org.chenile.base.exception.ConfigurationException;
 import org.chenile.stm.STMInternalTransitionInvoker;
 import org.chenile.stm.State;
 import org.chenile.stm.StateEntity;
 import org.chenile.stm.action.STMTransitionAction;
 import org.chenile.stm.model.Transition;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -19,18 +17,11 @@ import java.util.TreeSet;
  * <p>Without this class. Payload type had to be declared in the STM configuration. The blue print
  * for STM assumes that all STM Transition Actions extend this class. This action is instantiated in
  * spring using a convention that allows it to be discovered by {@link STMTransitionActionResolver}.</p>
- * <p>This class also supports the notion of a chain of transition actions that can be attached to
- * the same event. The class registers itself to the main event transition action using
- * {@link #registerAction(String, int)}. An index determines the order of registration. The transition
- * actions are executed in the order of the index starting from the first transition action.</p>
- * @param <StateEntityType> the sub-type of the state entity
- * @param <PayloadType> the type of payload
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractSTMTransitionAction<StateEntityType extends StateEntity,PayloadType>
         implements STMTransitionAction<StateEntityType> {
     private final Set<OrderedCommand> cset = new TreeSet<>();
-    @Autowired STMTransitionActionResolver stmTransitionActionResolver ;
 
      @Override
     public final void doTransition(StateEntityType stateEntity, Object transitionParam, State startState,
@@ -42,7 +33,7 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
                 eventId, endState,  stm, transition);
 
     }
-    private void addCommand(int index,AbstractSTMTransitionAction<StateEntityType,PayloadType> action){
+    protected void addCommand(int index,AbstractSTMTransitionAction<StateEntityType,PayloadType> action){
         if (cset.isEmpty()){
             cset.add(new OrderedCommand(index,this));
         }
@@ -83,15 +74,5 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
          public int compareTo(OrderedCommand o) {
              return (index - o.index );
          }
-     }
-
-     protected void registerAction(String eventId, int index){
-         AbstractSTMTransitionAction<StateEntityType,PayloadType> action =
-                 (AbstractSTMTransitionAction<StateEntityType,PayloadType>) stmTransitionActionResolver.getBean(eventId);
-         if (action == null)
-             throw new ConfigurationException(5001,"No transition action found for event id " + eventId);
-         if (index == 0)
-             throw new ConfigurationException(5002,"Index 0 is not allowed");
-         action.addCommand(index,this);
      }
 }
