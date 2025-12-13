@@ -116,6 +116,7 @@ INITIATED -(putInAssemblyLine) -> IN_ASSEMBLY_LINE -> (finishManufacturing) -> O
     And the REST response key "mutatedEntity.currentState.stateId" is "OUT_OF_ASSEMBLY_LINE"
     And the REST response key "mutatedEntity.comments.finishManufacturing" is "${comment}"
     And the REST response key "mutatedEntity.modelType" is "${modelType}"
+    And the response key "mutatedEntity.secondTester" is "Second Testing Done!"
 
   Scenario: Perform activity testByExperts on the mfgModel with comments.
     Given that "comment" equals "Expert Robert Brown tested the model successfully."

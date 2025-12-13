@@ -11,6 +11,9 @@ public class MfgModel extends AbstractExtendedStateEntity implements ActivityEna
     // Capture if the model type is RETRO or MODERN.
     public String modelType;
     public Collection<ActivityLog> activities = new ArrayList<>();
+    // STMTransitionActionResolver handler
+    public String secondTester;
+
 
     @Override
     public Collection<ActivityLog> obtainActivities() {

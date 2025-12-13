@@ -15,8 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 @SuppressWarnings("unchecked")
 public abstract class SecondSTMTransitionAction<StateEntityType extends StateEntity, PayloadType>
             extends AbstractSTMTransitionAction<StateEntityType,PayloadType> {
-    @Autowired
-    STMTransitionActionResolver stmTransitionActionResolver ;
+
+    final private STMTransitionActionResolver stmTransitionActionResolver ;
+
+    protected SecondSTMTransitionAction(STMTransitionActionResolver stmTransitionActionResolver) {
+        this.stmTransitionActionResolver = stmTransitionActionResolver;
+    }
+
     protected void registerAction(String eventId, int index){
         AbstractSTMTransitionAction<StateEntityType,PayloadType> action =
                 (AbstractSTMTransitionAction<StateEntityType,PayloadType>) stmTransitionActionResolver.getBean(eventId);

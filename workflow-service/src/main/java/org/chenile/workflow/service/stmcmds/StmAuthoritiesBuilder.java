@@ -14,20 +14,26 @@ import java.util.function.Function;
  */
 public class StmAuthoritiesBuilder {
     private final STMActionsInfoProvider stmActionsInfoProvider;
-    public StmAuthoritiesBuilder(STMActionsInfoProvider stmActionsInfoProvider) {
+    private final Boolean isDefaultAclRequired;
+
+    public StmAuthoritiesBuilder(STMActionsInfoProvider stmActionsInfoProvider, boolean isDefaultAclRequired) {
         this.stmActionsInfoProvider = stmActionsInfoProvider;
+        this.isDefaultAclRequired = isDefaultAclRequired;
     }
 
     public Function<ChenileExchange, String[]> build() throws Exception {
         return (exchange) -> {
             String eventId = exchange.getHeader("eventID", String.class);
+
             EventInformation eventInformation = stmActionsInfoProvider.getEventInformation(eventId);
             if (null != eventInformation) {
                 String acls = eventInformation.getMetadata().get("acls");
                 if (acls == null || acls.isEmpty()) return null;
                 return acls.split(",");
             }
-            return null;
+            return isDefaultAclRequired?
+                    new String[]{(exchange.getServiceReferenceId()+"_"+eventId).toLowerCase()}:
+                    null;
         };
     }
 }

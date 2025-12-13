@@ -35,7 +35,7 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
     }
     protected void addCommand(int index,AbstractSTMTransitionAction<StateEntityType,PayloadType> action){
         if (cset.isEmpty()){
-            cset.add(new OrderedCommand(index,this));
+            cset.add(new OrderedCommand(0,this));
         }
         cset.add(new OrderedCommand(index,action));
     }

@@ -1,12 +1,10 @@
 package org.chenile.workflow.service.test1;
 
 
-import org.chenile.stm.ConfigProvider;
-import org.chenile.stm.STM;
-import org.chenile.stm.STMFlowStore;
-import org.chenile.stm.State;
+import org.chenile.stm.*;
 import org.chenile.stm.action.STMTransitionAction;
 import org.chenile.stm.impl.*;
+import org.chenile.stm.model.Transition;
 import org.chenile.stm.spring.SpringBeanFactoryAdapter;
 import org.chenile.workflow.param.MinimalPayload;
 import org.chenile.workflow.service.activities.ActivityChecker;
@@ -15,6 +13,7 @@ import org.chenile.workflow.service.impl.StateEntityServiceImpl;
 import org.chenile.workflow.service.stmcmds.*;
 import org.chenile.workflow.service.test1.cmds.FinishManufacturing;
 import org.chenile.workflow.service.test1.cmds.PerformStep;
+import org.chenile.workflow.service.test1.mfg.FinishManufacturingPayload;
 import org.chenile.workflow.service.test1.mfg.MfgEntityStore;
 import org.chenile.workflow.service.test1.mfg.MfgModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,5 +134,27 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 	@Bean STMTransitionAction<MfgModel> mfgFinishManufacturing() {
 		return new FinishManufacturing();
 	}
+
+
+
+
+	@Bean(initMethod = "initialize")
+	SecondSTMTransitionAction<MfgModel, FinishManufacturingPayload> secondSTMTransitionAction(@Qualifier("stmTransitionActionResolver")
+														STMTransitionActionResolver stmTransitionActionResolver
+																){
+		return new SecondSTMTransitionAction<MfgModel,FinishManufacturingPayload>(stmTransitionActionResolver) {
+
+			public void initialize() {
+				registerAction("finishManufacturing",1);
+			}
+
+			@Override
+			public void transitionTo(MfgModel stateEntity, FinishManufacturingPayload transitionParam, State startState, String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
+				stateEntity.secondTester = "Second Testing Done!";
+			}
+
+		};
+	}
+
 }
 
