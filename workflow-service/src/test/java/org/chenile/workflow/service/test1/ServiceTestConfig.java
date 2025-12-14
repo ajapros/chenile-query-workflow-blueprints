@@ -148,7 +148,6 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 			public void transitionTo(MfgModel stateEntity, FinishManufacturingPayload transitionParam, State startState, String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
 				stateEntity.secondTester = "Second Testing Done!";
 			}
-
 		};
 	}
 

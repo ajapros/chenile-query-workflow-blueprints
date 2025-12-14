@@ -3,7 +3,6 @@ package org.chenile.workflow.service.stmcmds;
 import org.chenile.base.exception.ConfigurationException;
 import org.chenile.stm.StateEntity;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * <p>This class also supports the notion of a chain of transition actions that can be attached to
