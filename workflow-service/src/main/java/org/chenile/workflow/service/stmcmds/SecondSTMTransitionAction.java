@@ -2,6 +2,7 @@ package org.chenile.workflow.service.stmcmds;
 
 import org.chenile.base.exception.ConfigurationException;
 import org.chenile.stm.StateEntity;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -14,14 +15,18 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @SuppressWarnings("unchecked")
 public abstract class SecondSTMTransitionAction<StateEntityType extends StateEntity, PayloadType>
-            extends AbstractSTMTransitionAction<StateEntityType,PayloadType> {
+            extends AbstractSTMTransitionAction<StateEntityType,PayloadType>
+            implements InitializingBean {
 
     final private STMTransitionActionResolver stmTransitionActionResolver ;
+    final private String eventId;
+    final private int index;
 
     protected SecondSTMTransitionAction(STMTransitionActionResolver stmTransitionActionResolver,
                                 String eventId, int index) {
         this.stmTransitionActionResolver = stmTransitionActionResolver;
-        registerAction(eventId,index);
+        this.eventId = eventId;
+        this.index = index;
     }
 
     protected void registerAction(String eventId, int index){
@@ -32,5 +37,10 @@ public abstract class SecondSTMTransitionAction<StateEntityType extends StateEnt
         if (index == 0)
             throw new ConfigurationException(5002,"Index 0 is not allowed");
         action.addCommand(index,this);
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        registerAction(eventId,index);
     }
 }
