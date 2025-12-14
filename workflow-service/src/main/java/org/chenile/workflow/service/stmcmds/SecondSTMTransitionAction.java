@@ -18,8 +18,10 @@ public abstract class SecondSTMTransitionAction<StateEntityType extends StateEnt
 
     final private STMTransitionActionResolver stmTransitionActionResolver ;
 
-    protected SecondSTMTransitionAction(STMTransitionActionResolver stmTransitionActionResolver) {
+    protected SecondSTMTransitionAction(STMTransitionActionResolver stmTransitionActionResolver,
+                                String eventId, int index) {
         this.stmTransitionActionResolver = stmTransitionActionResolver;
+        registerAction(eventId,index);
     }
 
     protected void registerAction(String eventId, int index){
