@@ -2,7 +2,8 @@ package org.chenile.workflow.service.stmcmds;
 
 import org.chenile.base.exception.ConfigurationException;
 import org.chenile.stm.StateEntity;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 /**
  * <p>This class also supports the notion of a chain of transition actions that can be attached to
@@ -14,8 +15,7 @@ import org.springframework.beans.factory.InitializingBean;
  */
 @SuppressWarnings("unchecked")
 public abstract class SecondSTMTransitionAction<StateEntityType extends StateEntity, PayloadType>
-            extends AbstractSTMTransitionAction<StateEntityType,PayloadType>
-            implements InitializingBean {
+            extends AbstractSTMTransitionAction<StateEntityType,PayloadType> {
 
     final private STMTransitionActionResolver stmTransitionActionResolver ;
     final private String eventId;
@@ -38,8 +38,8 @@ public abstract class SecondSTMTransitionAction<StateEntityType extends StateEnt
         action.addCommand(index,this);
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    @EventListener(ApplicationReadyEvent.class)
+    public void init() throws Exception {
         registerAction(eventId,index);
     }
 }
