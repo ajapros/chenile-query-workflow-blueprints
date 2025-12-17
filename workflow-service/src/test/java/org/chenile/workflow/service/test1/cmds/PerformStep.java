@@ -6,12 +6,17 @@ import org.chenile.stm.model.Transition;
 import org.chenile.workflow.param.MinimalPayload;
 import org.chenile.workflow.service.activities.ActivityChecker;
 import org.chenile.workflow.service.stmcmds.AbstractSTMTransitionAction;
+import org.chenile.workflow.service.stmcmds.MultipleCommandsRegistry;
 import org.chenile.workflow.service.test1.mfg.MfgModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class PerformStep<PayloadType extends MinimalPayload> extends AbstractSTMTransitionAction<MfgModel, PayloadType> {
     @Autowired
     ActivityChecker activityChecker;
+    public PerformStep(){}
+    public  PerformStep(MultipleCommandsRegistry<MfgModel,PayloadType> multipleCommandsRegistry){
+        super(multipleCommandsRegistry);
+    }
     @Override
     public void transitionTo(MfgModel mfgModel, PayloadType payload,
                  State startState, String eventId, State endState, STMInternalTransitionInvoker<?> stm,

@@ -5,9 +5,7 @@ import org.chenile.stm.State;
 import org.chenile.stm.StateEntity;
 import org.chenile.stm.action.STMTransitionAction;
 import org.chenile.stm.model.Transition;
-
-import java.util.Set;
-import java.util.TreeSet;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@link STMTransitionAction} uses Object as a payload type. Hence it is
@@ -21,30 +19,19 @@ import java.util.TreeSet;
 @SuppressWarnings("unchecked")
 public abstract class AbstractSTMTransitionAction<StateEntityType extends StateEntity,PayloadType>
         implements STMTransitionAction<StateEntityType> {
-    private final Set<OrderedCommand> cset = new TreeSet<>();
-
-     @Override
+    MultipleCommandsRegistry<StateEntityType,PayloadType> multipleCommandsRegistry;
+    public AbstractSTMTransitionAction(){}
+    public AbstractSTMTransitionAction(MultipleCommandsRegistry<StateEntityType,PayloadType> multipleCommandsRegistry){
+        this.multipleCommandsRegistry = multipleCommandsRegistry;
+    }
+    @Override
     public final void doTransition(StateEntityType stateEntity, Object transitionParam, State startState,
                              String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
-        if (!cset.isEmpty()){
-            initExecuteChain(stateEntity, transitionParam, startState, eventId, endState, stm, transition);
-        }else
-            transitionTo(stateEntity, (PayloadType) transitionParam, startState,
-                eventId, endState,  stm, transition);
-
-    }
-    protected void addCommand(int index,AbstractSTMTransitionAction<StateEntityType,PayloadType> action){
-        if (cset.isEmpty()){
-            cset.add(new OrderedCommand(0,this));
-        }
-        cset.add(new OrderedCommand(index,action));
-    }
-    private void initExecuteChain(StateEntityType stateEntity, Object transitionParam, State startState,
-                                  String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
-        for (OrderedCommand oc: cset){
-            oc.action.transitionTo(stateEntity,(PayloadType)transitionParam,startState,eventId,
-                    endState,stm,transition);
-        }
+        transitionTo(stateEntity, (PayloadType) transitionParam, startState,
+            eventId, endState,  stm, transition);
+        if(multipleCommandsRegistry != null)
+            multipleCommandsRegistry.initExecuteChain(stateEntity, transitionParam,
+                startState, eventId, endState, stm, transition);
     }
     /**
      * Implement this method to start using your expected payload type.
@@ -60,19 +47,5 @@ public abstract class AbstractSTMTransitionAction<StateEntityType extends StateE
     public abstract void transitionTo(StateEntityType stateEntity,
               PayloadType transitionParam, State startState, String eventId, State endState,
               STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception;
-     public class OrderedCommand implements Comparable<OrderedCommand> {
-         /**
-          * This class is needed to ensure that the commands are retrieved in the correct order
-          */
-         public int index;
-         public AbstractSTMTransitionAction<StateEntityType,PayloadType> action;
-         public OrderedCommand(int index,AbstractSTMTransitionAction<StateEntityType,PayloadType> action){
-             this.index = index;
-             this.action = action;
-         }
 
-         public int compareTo(OrderedCommand o) {
-             return (index - o.index );
-         }
-     }
 }

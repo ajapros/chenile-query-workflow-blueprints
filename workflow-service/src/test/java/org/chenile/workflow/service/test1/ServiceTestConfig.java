@@ -81,10 +81,14 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 		return new GenericExitAction<>();
 	}
 
-	@Bean STMTransitionAction<MfgModel> defaultSTMTransitionAction() {
-		return new PerformStep<MinimalPayload>();
+	@Bean STMTransitionAction<MfgModel> defaultSTMTransitionAction(
+			@Qualifier("mfgMultipleCommandsRegistry") MultipleCommandsRegistry<MfgModel,MinimalPayload> multipleCommandsRegistry) {
+		return new PerformStep<MinimalPayload>(multipleCommandsRegistry);
 	}
 
+	@Bean MultipleCommandsRegistry<?,?> mfgMultipleCommandsRegistry(){
+		return new MultipleCommandsRegistry<>();
+	}
 	@Bean
 	STMTransitionActionResolver stmTransitionActionResolver(
 			@Qualifier("defaultSTMTransitionAction") STMTransitionAction<MfgModel> defaultSTMTransitionAction){
@@ -131,18 +135,15 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 	// TransitionActionResolver above.) This will ensure that these are detected automatically by the
 	// Workflow system. The payload types will be detected as well so that there is no need to
 	// introduce an <event-information/> segment in the mfg.xml
-	@Bean STMTransitionAction<MfgModel> mfgFinishManufacturing() {
-		return new FinishManufacturing();
+	@Bean STMTransitionAction<MfgModel> mfgFinishManufacturing(@Qualifier("mfgMultipleCommandsRegistry") MultipleCommandsRegistry<MfgModel,FinishManufacturingPayload> multipleCommandsRegistry) {
+		return new FinishManufacturing(multipleCommandsRegistry);
 	}
 
-
-
-
 	@Bean
-	SecondSTMTransitionAction<MfgModel, FinishManufacturingPayload> secondSTMTransitionAction(@Qualifier("stmTransitionActionResolver")
-														STMTransitionActionResolver stmTransitionActionResolver
+	SecondSTMTransitionAction<MfgModel, FinishManufacturingPayload> secondSTMTransitionAction(@Qualifier("mfgMultipleCommandsRegistry")
+														MultipleCommandsRegistry<MfgModel,FinishManufacturingPayload> multipleCommandsRegistry
 																){
-		return new SecondSTMTransitionAction<MfgModel,FinishManufacturingPayload>(stmTransitionActionResolver,
+		return new SecondSTMTransitionAction<MfgModel,FinishManufacturingPayload>(multipleCommandsRegistry,
 						"finishManufacturing",1) {
 			@Override
 			public void transitionTo(MfgModel stateEntity, FinishManufacturingPayload transitionParam, State startState, String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {

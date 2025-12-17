@@ -17,25 +17,22 @@ import org.springframework.context.event.EventListener;
 public abstract class SecondSTMTransitionAction<StateEntityType extends StateEntity, PayloadType>
             extends AbstractSTMTransitionAction<StateEntityType,PayloadType> {
 
-    final private STMTransitionActionResolver stmTransitionActionResolver ;
+    final private MultipleCommandsRegistry<StateEntityType,PayloadType> multipleCommandsRegistry ;
     final private String eventId;
     final private int index;
 
-    protected SecondSTMTransitionAction(STMTransitionActionResolver stmTransitionActionResolver,
+    protected SecondSTMTransitionAction(MultipleCommandsRegistry<StateEntityType
+            ,PayloadType> commandsRegistry,
                                 String eventId, int index) {
-        this.stmTransitionActionResolver = stmTransitionActionResolver;
+        this.multipleCommandsRegistry = commandsRegistry;
         this.eventId = eventId;
         this.index = index;
     }
 
     protected void registerAction(String eventId, int index){
-        AbstractSTMTransitionAction<StateEntityType,PayloadType> action =
-                (AbstractSTMTransitionAction<StateEntityType,PayloadType>) stmTransitionActionResolver.getBean(eventId);
-        if (action == null)
-            throw new ConfigurationException(5001,"No transition action found for event id " + eventId);
         if (index == 0)
             throw new ConfigurationException(5002,"Index 0 is not allowed");
-        action.addCommand(index,this);
+        multipleCommandsRegistry.addCommand(eventId,index,this);
     }
 
     @EventListener(ApplicationReadyEvent.class)
