@@ -144,7 +144,7 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 														MultipleCommandsRegistry<MfgModel,FinishManufacturingPayload> multipleCommandsRegistry
 																){
 		return new SecondSTMTransitionAction<MfgModel,FinishManufacturingPayload>(multipleCommandsRegistry,
-						"finishManufacturing",1) {
+						1,"finishManufacturing") {
 			@Override
 			public void transitionTo(MfgModel stateEntity, FinishManufacturingPayload transitionParam, State startState, String eventId, State endState, STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
 				stateEntity.secondTester = "Second Testing Done!";

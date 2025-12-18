@@ -18,14 +18,13 @@ public abstract class SecondSTMTransitionAction<StateEntityType extends StateEnt
             extends AbstractSTMTransitionAction<StateEntityType,PayloadType> {
 
     final private MultipleCommandsRegistry<StateEntityType,PayloadType> multipleCommandsRegistry ;
-    final private String eventId;
+    final private String[] eventIds;
     final private int index;
 
     protected SecondSTMTransitionAction(MultipleCommandsRegistry<StateEntityType
-            ,PayloadType> commandsRegistry,
-                                String eventId, int index) {
+            ,PayloadType> commandsRegistry, int index, String... eventIds) {
         this.multipleCommandsRegistry = commandsRegistry;
-        this.eventId = eventId;
+        this.eventIds = eventIds;
         this.index = index;
     }
 
@@ -37,6 +36,7 @@ public abstract class SecondSTMTransitionAction<StateEntityType extends StateEnt
 
     @EventListener(ApplicationReadyEvent.class)
     public void init() throws Exception {
-        registerAction(eventId,index);
+        for (String eventId: eventIds)
+            registerAction(eventId,index);
     }
 }
