@@ -1,11 +1,11 @@
 package org.chenile.workflow.service.test1;
 
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import io.cucumber.java.en.Given;
+import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
-
-import cucumber.api.java.en.Given;
 
 /**
  * A dummy steps class to pull together the spring configuration
@@ -14,6 +14,7 @@ import cucumber.api.java.en.Given;
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,classes = ServiceTestConfig.class)
 @AutoConfigureMockMvc
+@CucumberContextConfiguration
 @ActiveProfiles("unittest")
 public class CukesWorkflowSteps {
 	@Given("Dummy")

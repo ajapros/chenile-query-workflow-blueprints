@@ -17,7 +17,6 @@ import org.chenile.workflow.api.WorkflowRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractSearchServiceImpl implements SearchService<Map<String, Object>> {

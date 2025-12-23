@@ -48,13 +48,13 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 		return flowReader;
 	}
 	
-	@Bean @Autowired STM<MfgModel> mfgEntityStm(@Qualifier("mfgFlowStore") STMFlowStoreImpl stmFlowStore) {
+	@Bean  STM<MfgModel> mfgEntityStm(@Qualifier("mfgFlowStore") STMFlowStoreImpl stmFlowStore) {
 		STMImpl<MfgModel> stm = new STMImpl<>();
 		stm.setStmFlowStore(stmFlowStore);
 		return stm;
 	}
 	
-	@Bean @Autowired STMActionsInfoProvider mfgActionsInfoProvider(@Qualifier("mfgFlowStore") STMFlowStoreImpl stmFlowStore) {
+	@Bean STMActionsInfoProvider mfgActionsInfoProvider(@Qualifier("mfgFlowStore") STMFlowStoreImpl stmFlowStore) {
 		return new STMActionsInfoProvider(stmFlowStore);
 	}
 	
@@ -63,7 +63,7 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 		return new MfgEntityStore();
 	}
 	
-	@Bean @Autowired StateEntityServiceImpl<MfgModel> _mfgStateEntityService_(
+	@Bean StateEntityServiceImpl<MfgModel> _mfgStateEntityService_(
 			@Qualifier("mfgEntityStm") STM<MfgModel> stm,
 			@Qualifier("mfgActionsInfoProvider") STMActionsInfoProvider issueInfoProvider,
 			@Qualifier("mfgEntityStore") MfgEntityStore entityStore){
@@ -72,7 +72,7 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 	
 	// Now we start constructing the STM Components 
 	
-	@Bean @Autowired GenericEntryAction<MfgModel> mfgEntryAction(@Qualifier("mfgEntityStore") MfgEntityStore entityStore,
+	@Bean GenericEntryAction<MfgModel> mfgEntryAction(@Qualifier("mfgEntityStore") MfgEntityStore entityStore,
 			@Qualifier("mfgActionsInfoProvider") STMActionsInfoProvider mfgInfoProvider){
 		return new GenericEntryAction<>(entityStore, mfgInfoProvider);
 	}
@@ -94,7 +94,7 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 			@Qualifier("defaultSTMTransitionAction") STMTransitionAction<MfgModel> defaultSTMTransitionAction){
 		return new STMTransitionActionResolver("mfg",defaultSTMTransitionAction);
 	}
-	@Bean @Autowired StmBodyTypeSelector mfgBodyTypeSelector(
+	@Bean StmBodyTypeSelector mfgBodyTypeSelector(
 		@Qualifier("mfgActionsInfoProvider") STMActionsInfoProvider issueInfoProvider,
 		@Qualifier("stmTransitionActionResolver") STMTransitionActionResolver stmTransitionActionResolver) {
 		return new StmBodyTypeSelector(issueInfoProvider,stmTransitionActionResolver);

@@ -1,11 +1,11 @@
 package org.chenile.workflow.service.stmcmds;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import org.chenile.core.context.ChenileExchange;
 import org.chenile.owiz.Command;
 import org.chenile.stm.impl.STMActionsInfoProvider;
 import org.chenile.stm.model.EventInformation;
 import org.chenile.workflow.service.impl.StateEntityServiceImpl;
+import tools.jackson.core.type.TypeReference;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;

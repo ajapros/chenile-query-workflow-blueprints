@@ -1,6 +1,6 @@
 package org.chenile.cucumber.workflow;
 
-import cucumber.api.java.en.Given;
+import io.cucumber.java.en.Given;
 import org.chenile.cucumber.VariableHelper;
 import org.chenile.stm.impl.ConfigProviderImpl;
 import org.springframework.beans.factory.annotation.Autowired;
