@@ -9,6 +9,8 @@ import tools.jackson.core.type.TypeReference;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Selects the body type of the {@link ChenileExchange} based on the event Id passed
@@ -27,6 +29,9 @@ import java.lang.reflect.Type;
 public class StmBodyTypeSelector implements Command<ChenileExchange>{
 	private STMTransitionActionResolver stmTransitionActionResolver = null;
 	private final STMActionsInfoProvider stmActionsInfoProvider;
+
+	private  final Map<String, TypeReference<?>> configs = new LinkedHashMap<>();
+
 	public StmBodyTypeSelector(STMActionsInfoProvider stmActionsInfoProvider) {
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
 	}
@@ -35,7 +40,21 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
 		this.stmTransitionActionResolver = stmTransitionActionResolver;
 	}
-	
+
+	public void storeBodyTypeSelector(){
+
+		stmActionsInfoProvider.getStmFlowStore().getAllFlows().forEach(e->{
+			e.getStates().forEach((k,v) -> {
+					v.getAllTransitionsIds().forEach(eventId->{
+						TypeReference<?> payload = checkIfPayloadTypeCanBeDerived(eventId);
+						if(payload!=null){
+							configs.put(eventId,payload);
+						}
+					});
+            });
+		});
+	}
+
 	@Override
 	public void execute(ChenileExchange exchange) throws Exception {
 		String eventId = exchange.getHeader("eventID",String.class);
@@ -92,5 +111,9 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 
 		}catch(Exception ignored){}
 		return null;
+	}
+
+	public Map<String, TypeReference<?>> getConfigs() {
+		return configs;
 	}
 }
