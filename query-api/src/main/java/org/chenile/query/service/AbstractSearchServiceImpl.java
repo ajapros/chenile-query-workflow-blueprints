@@ -48,9 +48,12 @@ public abstract class AbstractSearchServiceImpl implements SearchService<Map<Str
 
 		QueryMetadata queryMetadata = queryStore.retrieve(searchRequest.getQueryName());
 
-		if (queryMetadata == null)
+		if (queryMetadata == null){
+			logger.error("Query metadata not found for queryName: {}", searchRequest.getQueryName());
 			throw new NotFoundException(ErrorCodes.QUERY_ID_NOT_FOUND.getSubError(),
 					new Object[]{ searchRequest.getQueryName()});
+		}
+
 
 		// construct enhanced search request
 		EnhancedSearchRequest esr = new EnhancedSearchRequest(searchRequest);
