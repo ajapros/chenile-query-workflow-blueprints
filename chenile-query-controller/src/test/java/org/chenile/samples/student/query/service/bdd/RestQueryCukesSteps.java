@@ -8,7 +8,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 
 
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,classes = SpringTestConfig.class,
+@SpringBootTest(webEnvironment = WebEnvironment.MOCK,classes = SpringTestConfig.class,
   properties = {"spring.profiles.active=unittest"})
 @AutoConfigureMockMvc
 @CucumberContextConfiguration

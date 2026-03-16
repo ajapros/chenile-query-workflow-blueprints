@@ -130,3 +130,16 @@ And the REST response key "list[0].row.name" is "Shankuntala"
 And the REST response key "list[1].row.name" is "Vijay"
 And the REST response key "list[0].row.id" is "26"
 And the REST response key "list[1].row.id" is "29"
+
+Scenario: Unknown query name returns not found
+When I POST a REST request to URL "/q/unknown-query" with payload
+"""
+{
+	"filters" :{
+		"name": "ja"
+	}
+}
+"""
+Then the http status code is 404
+And the top level code is 404
+And success is false

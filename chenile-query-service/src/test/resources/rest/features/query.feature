@@ -199,3 +199,16 @@ Examples:
 | tenantId | minimumId | firstId | secondId |
 | tenant1 | 20 | 26 | 29 |
 | tenant2 | 120 | 126 | 129 |
+
+Scenario: Unknown query name returns not found
+When I POST a REST request to URL "/q/unknown-query" with payload
+"""
+{
+	"filters" :{
+		"name": "ja"
+	}
+}
+"""
+Then the http status code is 404
+And the top level code is 404
+And success is false
