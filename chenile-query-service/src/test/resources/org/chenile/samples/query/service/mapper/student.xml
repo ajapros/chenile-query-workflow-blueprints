@@ -33,6 +33,9 @@ ${pagination} as part of them as shown below. -->
     <if test="phone != null">
         AND phone = #{phone}
     </if>
+    <if test="minimumId != null">
+        AND id &gt;= #{minimumId}
+    </if>
   </where>
 </select>
 
@@ -63,6 +66,9 @@ Make sure that sortable and paginated are set to true in the corresponding query
     <if test="phone != null">
         AND phone = #{phone}
     </if>
+    <if test="minimumId != null">
+        AND id &gt;= #{minimumId}
+    </if>
   </where>
   ${orderby} ${pagination}
 </select>
@@ -71,4 +77,5 @@ Make sure that sortable and paginated are set to true in the corresponding query
 
 
     	
+	
 </mapper>

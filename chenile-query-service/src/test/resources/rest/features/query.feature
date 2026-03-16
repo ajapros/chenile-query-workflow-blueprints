@@ -1,6 +1,9 @@
  
 Feature: Tests the Student Query Service using a REST client. 
 
+Background:
+When I construct a REST request with header "x-chenile-auth-user" and value "manager1"
+
 Scenario Outline: Tests out pagination capability
 When I construct a REST request with header "x-chenile-tenant-id" and value "<tenantId>"
 When I POST a REST request to URL "/q/students" with payload
@@ -166,3 +169,33 @@ And success is true
 And the REST response key "numRowsReturned" is "1"
 And the REST response key "list[0].row.name" is "Vijay"
 And the REST response key "list[0].row.id" is "29"
+
+Scenario Outline: Test custom variables bypass filter metadata
+When I construct a REST request with header "x-chenile-tenant-id" and value "<tenantId>"
+When I POST a REST request to URL "/q/students" with payload
+"""
+{
+	"filters" :{
+		"branch": [ "Bangalore" ]
+	},
+	"customVariables" :{
+		"minimumId": <minimumId>
+	},
+	"sortCriteria" :[
+		{"name":"name","ascendingOrder": true}
+	]
+}
+"""
+Then the http status code is 200
+And the top level code is 200
+And success is true
+And the REST response key "numRowsReturned" is "2"
+And the REST response key "list[0].row.name" is "Shankuntala"
+And the REST response key "list[1].row.name" is "Vijay"
+And the REST response key "list[0].row.id" is "<firstId>"
+And the REST response key "list[1].row.id" is "<secondId>"
+
+Examples:
+| tenantId | minimumId | firstId | secondId |
+| tenant1 | 20 | 26 | 29 |
+| tenant2 | 120 | 126 | 129 |

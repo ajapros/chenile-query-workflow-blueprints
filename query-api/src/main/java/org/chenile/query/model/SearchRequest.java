@@ -14,6 +14,11 @@ public class SearchRequest<FilterType> {
 	String queryName;
 	String cannedReportName;
 	List<String> fields;
+	/**
+	 * Extra query parameters that are not part of user-facing filter metadata but are still
+	 * required by the underlying query template.
+	 */
+	Map<String, Object> customVariables;
 
 	public boolean isToDoList() {
 		return toDoList;
@@ -177,5 +182,13 @@ public class SearchRequest<FilterType> {
 
 	public void setOrOperation(boolean isOrOperation) {
 		this.isOrOperation = isOrOperation;
+	}
+
+	public Map<String, Object> getCustomVariables() {
+		return customVariables;
+	}
+
+	public void setCustomVariables(Map<String, Object> customVariables) {
+		this.customVariables = customVariables;
 	}
 }

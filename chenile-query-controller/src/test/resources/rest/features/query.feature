@@ -1,6 +1,9 @@
  
 Feature: Tests the Student Query Service using a REST client. 
 
+Background:
+When I construct a REST request with header "x-chenile-auth-user" and value "manager1"
+
 Scenario: Tests out pagination capability
 When I POST a REST request to URL "/q/students" with payload
 """
@@ -104,3 +107,26 @@ And the REST response key "list[1].row.id" is "18"
 And the REST response key "list[0].row.name" is "Akash"
 And the REST response key "list[1].row.name" is "Vikas"
 
+Scenario: Test custom variables bypass filter metadata
+When I POST a REST request to URL "/q/students" with payload
+"""
+{
+	"filters" :{
+		"branch": [ "Bangalore" ]
+	},
+	"customVariables" :{
+		"minimumId": 20
+	},
+	"sortCriteria" :[
+		{"name":"name","ascendingOrder": true}
+	]
+}
+"""
+Then the http status code is 200
+And the top level code is 200
+And success is true
+And the REST response key "numRowsReturned" is "2"
+And the REST response key "list[0].row.name" is "Shankuntala"
+And the REST response key "list[1].row.name" is "Vijay"
+And the REST response key "list[0].row.id" is "26"
+And the REST response key "list[1].row.id" is "29"

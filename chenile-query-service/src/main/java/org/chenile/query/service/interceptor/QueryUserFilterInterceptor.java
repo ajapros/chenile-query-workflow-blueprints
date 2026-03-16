@@ -48,6 +48,8 @@ public class QueryUserFilterInterceptor extends BaseChenileInterceptor {
 			return;
 		
 		String queryName = searchRequest.getQueryName();
+		if(queryName==null)
+			queryName = exchange.getHeader("queryName", String.class);
 		// dont intercept the user_reportees query itself. This will result in recursion
 		if (queryName.equals(USER_REPORTEES_QUERY_NAME))
 			return;
@@ -68,7 +70,7 @@ public class QueryUserFilterInterceptor extends BaseChenileInterceptor {
 	}
 
 	protected void enhanceSystemFilters(Map<String, Object> systemFilters) {
-		String userId = contextContainer.getEmployeeId();
+		String userId = contextContainer.getAuthUser();
 		List<String> authIds = executeUserReporteesQuery(userId);
 		systemFilters.put("authIds", authIds);
 	}
@@ -78,7 +80,7 @@ public class QueryUserFilterInterceptor extends BaseChenileInterceptor {
 		SearchRequest<Map<String, Object>> searchRequest = new SearchRequest<Map<String, Object>>();
 		searchRequest.setQueryName(USER_REPORTEES_QUERY_NAME);
 		Map<String, Object> filters = new HashMap<>();
-		filters.put("employeeId", userId);
+		filters.put("userId", userId);
 		searchRequest.setFilters(filters);
 		SearchResponse searchResponse = searchService.search(searchRequest);
 		for (ResponseRow rr : searchResponse.getList()) {

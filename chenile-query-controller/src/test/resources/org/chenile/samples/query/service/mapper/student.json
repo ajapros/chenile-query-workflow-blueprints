@@ -39,9 +39,28 @@
 				"filterable": true
 			}
 		},	
+		"acls": ["QUERY_READ", "QUERY_EXPORT"],
 		"flexiblePropnames": false,
         "paginated" : true,
         "sortable" : true
+    },
+	{
+		"id": "AuthUser.reportees",
+		"name": "AuthUser.reportees",
+		"columnMetadata": {
+			"userId": {
+				"name": "userId",
+				"filterable": true,
+				"columnType": "Text"
+			},
+			"authId": {
+				"name": "authId",
+				"filterable": false,
+				"columnType": "Text"
+			}
+		},
+		"paginated": false,
+		"sortable": false
     }
     
 ]

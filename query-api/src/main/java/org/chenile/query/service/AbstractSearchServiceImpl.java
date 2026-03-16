@@ -140,8 +140,15 @@ public abstract class AbstractSearchServiceImpl implements SearchService<Map<Str
 				}
 			}
 		}
+
 		if (queryMetadata.isFlexiblePropnames())
 			enhanceFiltersWithPropNamesPropValues(searchInput.enhancedFilters);
+
+		Map<String, Object> customVariables = searchInput.originalSearchRequest.getCustomVariables();
+		if (customVariables != null) {
+			searchInput.enhancedFilters.putAll(customVariables);
+		}
+
 		logger.debug("Filters = " + searchInput.enhancedFilters);
 	}
 
@@ -356,6 +363,16 @@ public abstract class AbstractSearchServiceImpl implements SearchService<Map<Str
 			}
 			for (String column : two.getHiddenColumns()) {
 				one.getHiddenColumns().add(column);
+			}
+		}
+
+		if (two.getCustomVariables() != null && !two.getCustomVariables().isEmpty()) {
+			if (one.getCustomVariables() == null || one.getCustomVariables().isEmpty()) {
+				one.setCustomVariables(two.getCustomVariables());
+			} else {
+				for (Entry<String, Object> entry : two.getCustomVariables().entrySet()) {
+					one.getCustomVariables().put(entry.getKey(), entry.getValue());
+				}
 			}
 		}
 	}

@@ -1,7 +1,9 @@
 -- tenant2 dataset
 DROP TABLE IF EXISTS student;
+DROP TABLE IF EXISTS auth_user_reportees;
 
 CREATE TABLE student (ID INT PRIMARY KEY, name VARCHAR(25),branch VARCHAR(25),percentage int, phone VARCHAR(25),email VARCHAR(25));
+CREATE TABLE auth_user_reportees (user_id VARCHAR(50), auth_id VARCHAR(50));
 
 INSERT INTO student (ID,name,branch,percentage,phone,email) VALUES (101,'James','Chennai',45,'9988765700','james@mera.com');
 
@@ -41,3 +43,5 @@ INSERT INTO student (ID,name,branch,percentage,phone,email) VALUES (127,'Sohan',
 INSERT INTO student (ID,name,branch,percentage,phone,email) VALUES (128,'Roshan','Delhi',69,'9988765727','roshan@mera.com');
 INSERT INTO student (ID,name,branch,percentage,phone,email) VALUES (129,'Vijay','Bangalore',43,'9988765728','vijay@mera.com');
 INSERT INTO student (ID,name,branch,percentage,phone,email) VALUES (130,'Brijesh','Hyderabad',65,'9988765729','brijesh@mera.com');
+INSERT INTO auth_user_reportees (user_id,auth_id) VALUES ('manager1','team1');
+INSERT INTO auth_user_reportees (user_id,auth_id) VALUES ('manager1','team2');
