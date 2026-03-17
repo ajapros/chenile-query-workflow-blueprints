@@ -30,7 +30,7 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 	private STMTransitionActionResolver stmTransitionActionResolver = null;
 	private final STMActionsInfoProvider stmActionsInfoProvider;
 
-	private  final Map<String, TypeReference<?>> configs = new LinkedHashMap<>();
+	private  Map<String, TypeReference<?>> configs = null;
 
 	public StmBodyTypeSelector(STMActionsInfoProvider stmActionsInfoProvider) {
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
@@ -42,6 +42,7 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 	}
 
 	public void storeBodyTypeSelector(){
+		if (configs == null) configs = new LinkedHashMap<>();
 
 		stmActionsInfoProvider.getStmFlowStore().getAllFlows().forEach(e->{
 			e.getStates().forEach((k,v) -> {
@@ -114,6 +115,9 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 	}
 
 	public Map<String, TypeReference<?>> getConfigs() {
+		if (configs == null) {
+			storeBodyTypeSelector();
+		}
 		return configs;
 	}
 }

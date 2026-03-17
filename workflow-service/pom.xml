@@ -59,5 +59,9 @@
 			<artifactId>junit-vintage-engine</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.chenile</groupId>
+			<artifactId>chenile-mcp</artifactId>
+		</dependency>
 	</dependencies>
 </project>
