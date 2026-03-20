@@ -30,6 +30,7 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 	private STMTransitionActionResolver stmTransitionActionResolver = null;
 	private final STMActionsInfoProvider stmActionsInfoProvider;
 
+	public record Config(String description, TypeReference<?> typeReference){}
 	private  Map<String, TypeReference<?>> configs = null;
 
 	public StmBodyTypeSelector(STMActionsInfoProvider stmActionsInfoProvider) {
