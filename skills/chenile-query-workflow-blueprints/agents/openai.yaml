@@ -1,0 +1,4 @@
+interface:
+  display_name: "Chenile Query Workflow Blueprints"
+  short_description: "Guide this repo's query and workflow blueprint code"
+  default_prompt: "Use $chenile-query-workflow-blueprints to explain, modify, or trace this repo's blueprint libraries."
