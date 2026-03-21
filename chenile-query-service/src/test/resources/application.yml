@@ -5,6 +5,8 @@ logging:
     com.netscore.poc: DEBUG
 
 spring:
+  banner:
+    location: classpath:banner.txt
   devtools:
     restart:
       enabled: true

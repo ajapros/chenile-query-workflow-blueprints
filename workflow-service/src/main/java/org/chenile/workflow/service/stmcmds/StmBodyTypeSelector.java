@@ -26,12 +26,12 @@ import java.util.Map;
  * @author Raja Shankar Kolluru
  *
  */
-public class StmBodyTypeSelector implements Command<ChenileExchange>{
-	private STMTransitionActionResolver stmTransitionActionResolver = null;
-	private final STMActionsInfoProvider stmActionsInfoProvider;
+	public class StmBodyTypeSelector implements Command<ChenileExchange>{
+		private STMTransitionActionResolver stmTransitionActionResolver = null;
+		private final STMActionsInfoProvider stmActionsInfoProvider;
 
-	public record EventData(String description, TypeReference<?> typeReference){}
-	private  Map<String, TypeReference<?>> configs = null;
+		public record EventData(String description, TypeReference<?> typeReference){}
+		private  Map<String, EventData> configs = null;
 
 	public StmBodyTypeSelector(STMActionsInfoProvider stmActionsInfoProvider) {
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
@@ -42,20 +42,20 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 		this.stmTransitionActionResolver = stmTransitionActionResolver;
 	}
 
-	public void storeBodyTypeSelector(){
-		if (configs == null) configs = new LinkedHashMap<>();
+		public void storeBodyTypeSelector(){
+			if (configs == null) configs = new LinkedHashMap<>();
 
-		stmActionsInfoProvider.getStmFlowStore().getAllFlows().forEach(e->{
-			e.getStates().forEach((k,v) -> {
-					v.getAllTransitionsIds().forEach(eventId->{
-						TypeReference<?> payload = checkIfPayloadTypeCanBeDerived(eventId);
-						if(payload!=null){
-							configs.put(eventId,payload);
-						}
-					});
-            });
-		});
-	}
+			stmActionsInfoProvider.getStmFlowStore().getAllFlows().forEach(e->{
+				e.getStates().forEach((k,v) -> {
+						v.getAllTransitionsIds().forEach(eventId->{
+							TypeReference<?> payload = checkIfPayloadTypeCanBeDerived(eventId);
+							if(payload!=null){
+								configs.put(eventId, buildEventData(eventId, payload));
+							}
+						});
+	            });
+			});
+		}
 
 	@Override
 	public void execute(ChenileExchange exchange) throws Exception {
@@ -115,7 +115,19 @@ public class StmBodyTypeSelector implements Command<ChenileExchange>{
 		return null;
 	}
 
-	public Map<String, TypeReference<?>> getConfigs() {
+	private EventData buildEventData(String eventId, TypeReference<?> payloadType) {
+		EventInformation eventInformation = stmActionsInfoProvider.getEventInformation(eventId);
+		String description = eventId;
+		if (eventInformation != null && eventInformation.getMetadata() != null) {
+			String configuredDescription = eventInformation.getMetadata().get("description");
+			if (configuredDescription != null && !configuredDescription.isBlank()) {
+				description = configuredDescription;
+			}
+		}
+		return new EventData(description, payloadType);
+	}
+
+	public Map<String, EventData> getConfigs() {
 		if (configs == null) {
 			storeBodyTypeSelector();
 		}

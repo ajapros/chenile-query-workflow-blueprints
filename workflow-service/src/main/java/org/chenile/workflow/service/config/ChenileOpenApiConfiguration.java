@@ -25,24 +25,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-//@Configuration
 public class ChenileOpenApiConfiguration {
-
     @Autowired
     private ChenileConfiguration serviceConfiguration;
 
-    private PathItem buildActivityPath(String k, String  t) {
-
+    private PathItem buildActivityPath(String k, String t) {
         Operation postOperation = new Operation()
-                .summary(k +" Todo Summary")
-                .description(k +" Todo key")
+                .summary(k + " Todo Summary")
+                .description(k + " Todo key")
                 .requestBody(
                         new io.swagger.v3.oas.models.parameters.RequestBody()
                                 .required(true)
                                 .content(new Content().addMediaType(
                                         "application/json",
                                         new MediaType().schema(
-                                                new Schema<>().$ref("#/components/schemas/"+t)
+                                                new Schema<>().$ref("#/components/schemas/" + t)
                                         )
                                 ))
                 )
@@ -55,10 +52,7 @@ public class ChenileOpenApiConfiguration {
 
     @Bean
     public OpenApiCustomizer activityOpenApi(@Autowired List<StmBodyTypeSelector> bodyTypeSelectors) {
-
-
         return openApi -> {
-
             // Ensure paths exist
             if (openApi.getPaths() == null) {
                 openApi.setPaths(new Paths());
@@ -69,43 +63,32 @@ public class ChenileOpenApiConfiguration {
                 openApi.setComponents(new Components());
             }
 
-
-            serviceConfiguration.getServices().forEach((name,sd)->{
-
-                sd.getOperations().forEach(ods->{
-
-                    if(ods.getBodyTypeSelector()!=null){
+            serviceConfiguration.getServices().forEach((name, sd) -> {
+                sd.getOperations().forEach(ods -> {
+                    if (ods.getBodyTypeSelector() != null) {
                         System.out.println(ods.getBodyTypeSelector());
-
-                        if(ods.getBodyTypeSelector() instanceof AbstractServiceInitializer.InterceptorChain){
-
+                        if (ods.getBodyTypeSelector() instanceof AbstractServiceInitializer.InterceptorChain) {
                             AbstractServiceInitializer.InterceptorChain chain = (AbstractServiceInitializer.InterceptorChain) ods.getBodyTypeSelector();
-
                             System.out.println(ods.getBodyTypeSelector());
                         }
                     }
-
-
-
                 });
 
             });
 
-            for(StmBodyTypeSelector bodyTypeSelector: bodyTypeSelectors){
+            for (StmBodyTypeSelector bodyTypeSelector : bodyTypeSelectors) {
                 bodyTypeSelector.storeBodyTypeSelector();
-                bodyTypeSelector.getConfigs().forEach((k,t)->{
+                bodyTypeSelector.getConfigs().forEach((k, eventData) -> {
 
                     Map<String, Schema> schemas =
-                            ModelConverters.getInstance().read(t.getType());
+                            ModelConverters.getInstance().read(eventData.typeReference().getType());
 
                     schemas.forEach((schemaName, schema) -> {
                         openApi.getComponents().addSchemas(schemaName, schema);
                     });
 
-                    String path = "/"+ Instant.now().getEpochSecond()+"/" + k;
-                    openApi.getPaths().addPathItem(path, buildActivityPath(k,schemas.keySet().stream().findFirst().get()));
-
-
+                    String path = "/" + Instant.now().getEpochSecond() + "/" + k;
+                    openApi.getPaths().addPathItem(path, buildActivityPath(k, schemas.keySet().stream().findFirst().get()));
                 });
             }
 

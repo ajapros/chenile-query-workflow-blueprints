@@ -23,21 +23,21 @@ public class ProcessIdPolymorph implements ChenilePolymorphProvider {
         this.stmBodyTypeSelector = stmBodyTypeSelector;
     }
     @Override
-    public List<ChenilePolymorphVariant> getVariants(ChenileServiceDefinition serviceDefinition,
-                                 OperationDefinition operationDefinition) {
-        assert operationDefinition.getParams().size() == 3;
-        String secondParamName = operationDefinition.getParams().get(1).getName();
-        String thirdParamName = operationDefinition.getParams().get(2).getName();
-        List<ChenilePolymorphVariant> variants = new ArrayList<>();
-        stmBodyTypeSelector.getConfigs().forEach((event, typeReference) -> {
-            variants.add(new ChenilePolymorphVariant(
-                    prefix + "_" + event,
-                    "Event e1 variant",
-                    Map.of(thirdParamName, typeReference),
-                    Map.of(thirdParamName,"Event " + event + " variant"),
-                    Map.of(secondParamName, event)));
+	    public List<ChenilePolymorphVariant> getVariants(ChenileServiceDefinition serviceDefinition,
+	                                 OperationDefinition operationDefinition) {
+	        assert operationDefinition.getParams().size() == 3;
+	        String secondParamName = operationDefinition.getParams().get(1).getName();
+	        String thirdParamName = operationDefinition.getParams().get(2).getName();
+	        List<ChenilePolymorphVariant> variants = new ArrayList<>();
+	        stmBodyTypeSelector.getConfigs().forEach((event, eventData) -> {
+	            variants.add(new ChenilePolymorphVariant(
+	                    prefix + "_" + event,
+	                    eventData.description(),
+	                    Map.of(thirdParamName, eventData.typeReference()),
+	                    Map.of(thirdParamName, eventData.description()),
+	                    Map.of(secondParamName, event)));
 
-        });
-        return variants;
-    }
+	        });
+	        return variants;
+	    }
 }
