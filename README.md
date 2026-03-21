@@ -2,6 +2,8 @@
 This contains some blue prints for workflow and query. We can use these to quickly develop chenile applications
 that conform to these blueprints. Also see chenile-gen for generators of code that comply to these blueprints
 
+See [docs/REPO_OVERVIEW.md](docs/REPO_OVERVIEW.md) for a module map, dependency direction, request flow, and contributor reading order.
+
 # About chenile
 
 Chenile is an open source framework for creating Micro services using Java and Spring Boot. 
@@ -26,5 +28,4 @@ Chenile also is integrated with [keycloak](https://www.keycloak.org/) for securi
 Finally, Chenile ships with its own code generators to ease the development of micro services. 
 Please see [Code Generation Repository](https://github.com/rajakolluru/chenile-gen) for more information 
 about the code generator.
-
 
