@@ -4,6 +4,7 @@ import org.chenile.core.context.ChenileExchange;
 import org.chenile.owiz.Command;
 import org.chenile.stm.impl.STMActionsInfoProvider;
 import org.chenile.stm.model.EventInformation;
+import org.chenile.stm.model.Transition;
 import org.chenile.workflow.service.impl.StateEntityServiceImpl;
 import tools.jackson.core.type.TypeReference;
 
@@ -47,12 +48,13 @@ import java.util.Map;
 
 			stmActionsInfoProvider.getStmFlowStore().getAllFlows().forEach(e->{
 				e.getStates().forEach((k,v) -> {
-						v.getAllTransitionsIds().forEach(eventId->{
-							TypeReference<?> payload = checkIfPayloadTypeCanBeDerived(eventId);
-							if(payload!=null){
-								configs.put(eventId, buildEventData(eventId, payload));
-							}
-						});
+						v.getTransitions().forEach((key, t) -> {
+                            TypeReference<?> payload = checkIfPayloadTypeCanBeDerived(key);
+                            if (payload != null) {
+                                EventData eventData = new EventData(t.getMetadata().get("description"), payload);
+                                configs.put(key, eventData);
+                            }
+                        });
 	            });
 			});
 		}
@@ -113,18 +115,6 @@ import java.util.Map;
 
 		}catch(Exception ignored){}
 		return null;
-	}
-
-	private EventData buildEventData(String eventId, TypeReference<?> payloadType) {
-		EventInformation eventInformation = stmActionsInfoProvider.getEventInformation(eventId);
-		String description = eventId;
-		if (eventInformation != null && eventInformation.getMetadata() != null) {
-			String configuredDescription = eventInformation.getMetadata().get("description");
-			if (configuredDescription != null && !configuredDescription.isBlank()) {
-				description = configuredDescription;
-			}
-		}
-		return new EventData(description, payloadType);
 	}
 
 	public Map<String, EventData> getConfigs() {
