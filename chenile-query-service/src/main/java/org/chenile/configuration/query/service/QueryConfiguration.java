@@ -26,6 +26,7 @@ import org.chenile.query.service.QueryStore;
 import org.chenile.query.service.SearchService;
 import org.chenile.query.service.impl.NamedQueryServiceSpringMybatisImpl;
 import org.chenile.query.service.impl.QueryDefinitions;
+import org.chenile.query.service.impl.QueryPolymorph;
 import org.chenile.query.service.interceptor.QueryUserFilterInterceptor;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
@@ -41,8 +42,13 @@ public class QueryConfiguration {
 	@Value("${query.definitionFiles}")
 	private Resource[] queryDefinitionFiles;
 	
-	@Bean("queryDefinitions") QueryDefinitions queryDefinitions() throws IOException{
-		return new QueryDefinitions(queryDefinitionFiles);
+		@Bean("queryDefinitions") QueryDefinitions queryDefinitions() throws IOException{
+			return new QueryDefinitions(queryDefinitionFiles);
+		}
+
+	@Bean("queryPolymorph")
+	QueryPolymorph queryPolymorph(@Autowired @Qualifier("queryDefinitions") QueryDefinitions queryDefinitions) {
+		return new QueryPolymorph(queryDefinitions);
 	}
 
     @Bean

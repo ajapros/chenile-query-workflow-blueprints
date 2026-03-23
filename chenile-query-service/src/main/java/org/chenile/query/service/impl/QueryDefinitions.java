@@ -1,16 +1,16 @@
 package org.chenile.query.service.impl;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.List;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chenile.query.model.QueryMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Reads the query definitions from a JSON file that has been passed to it.
@@ -33,6 +33,11 @@ public class QueryDefinitions extends BaseQueryStore{
 			logger.debug("Discovered name:" + qm.getName());
 		}
 	}
+
+	public List<QueryMetadata> getAllDiscoveredQueryDefinitions() {
+		return List.copyOf(new ArrayList<>(store.values()));
+	}
+
 	@Override
 	public QueryMetadata retrieveQueryIdFromStore(String queryId) {
 		return store.get(queryId);
