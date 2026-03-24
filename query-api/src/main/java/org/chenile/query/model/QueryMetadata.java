@@ -17,6 +17,16 @@ public class QueryMetadata extends BaseEntity {
 
     private String id;
     private String name; // the externally visible name for this query
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    private String description; // Useful description - can be used in MCP or Open API etc.
     private String flowColumn = "flowId";
     private String stateColumn = "stateId";
     private String lateColumn = null;

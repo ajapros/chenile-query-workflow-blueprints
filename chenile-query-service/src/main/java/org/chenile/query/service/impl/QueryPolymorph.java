@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * This must be used for Chenile Query entry point in the controller.
  * Exposes one MCP tool variant per discovered query definition.
  */
 public class QueryPolymorph implements ChenilePolymorphProvider {
@@ -37,7 +38,7 @@ public class QueryPolymorph implements ChenilePolymorphProvider {
         for (QueryMetadata queryMetadata : queryDefinitions.getAllDiscoveredQueryDefinitions()) {
             variants.add(new ChenilePolymorphVariant(
                     sanitizeVariantSuffix(queryMetadata.getName()),
-                    "Execute query " + queryMetadata.getName(),
+                    description(queryMetadata),
                     Map.of(),
                     Map.of(searchRequestParam, buildSearchRequestSchema(queryMetadata)),
                     Map.of(searchRequestParam, "Search request for query " + queryMetadata.getName()),
@@ -45,6 +46,12 @@ public class QueryPolymorph implements ChenilePolymorphProvider {
             ));
         }
         return variants;
+    }
+
+    private String description(QueryMetadata queryMetadata){
+        String desc = queryMetadata.getDescription();
+        return (desc == null || desc.isEmpty())? "Execute query " + queryMetadata.getName(): desc;
+
     }
 
     private String parameterName(OperationDefinition operationDefinition, int index, String fallback) {

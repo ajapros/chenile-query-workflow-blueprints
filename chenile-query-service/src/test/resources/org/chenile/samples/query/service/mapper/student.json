@@ -3,6 +3,7 @@
 
         "id": "Student.getAll",
         "name": "students",
+		"description": "Get all details about students",
         "columnMetadata": {
 			"id" : {
 				"name": "id",
@@ -47,6 +48,7 @@
 	{
 		"id": "AuthUser.reportees",
 		"name": "AuthUser.reportees",
+		"description": "Get All Authorized user information",
 		"columnMetadata": {
 			"userId": {
 				"name": "userId",
