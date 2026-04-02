@@ -1,11 +1,7 @@
 package org.chenile.query.service;
 
-import java.util.*;
-import java.util.Map.Entry;
-
 import org.apache.commons.lang.StringUtils;
 import org.chenile.base.exception.NotFoundException;
-import org.chenile.base.exception.ServerException;
 import org.chenile.core.context.ContextContainer;
 import org.chenile.query.model.*;
 import org.chenile.query.model.ColumnMetadata.ColumnType;
@@ -17,6 +13,9 @@ import org.chenile.workflow.api.WorkflowRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 @SuppressWarnings("unchecked")
 public abstract class AbstractSearchServiceImpl implements SearchService<Map<String, Object>> {
@@ -340,14 +339,6 @@ public abstract class AbstractSearchServiceImpl implements SearchService<Map<Str
 				one.getFilters().put(entry.getKey(), entry.getValue());
 			}
 		}
-
-		/*
-		 * Merging NumRowsInPage not required, because the default value has been set at
-		 * the model level. If we merge, then the value from the elastic search always
-		 * overrides the actual SearchRequest.
-		 */
-//		if (two.getNumRowsInPage() != 0)
-//			one.setNumRowsInPage(two.getNumRowsInPage());
 
 		if (two.getSortCriteria() != null && !two.getSortCriteria().isEmpty()) {
 			if (one.getSortCriteria() == null || one.getSortCriteria().isEmpty()) {
