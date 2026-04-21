@@ -1,6 +1,7 @@
 package org.chenile.workflow.service.stmcmds;
 
 import org.chenile.core.context.ContextContainer;
+import org.chenile.stm.StateEntity;
 import org.chenile.stm.action.STMAutomaticStateComputation;
 import org.chenile.stm.action.STMTransitionAction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.context.ApplicationContext;
 import java.util.Map;
 
 import static org.springframework.util.StringUtils.capitalize;
+import static org.springframework.util.StringUtils.uncapitalize;
 
 /**
  * Resolves bean name for the various STM components (such as TransitionActions, Automatic
@@ -75,27 +77,36 @@ public class STMTransitionActionResolver {
     }
 
     public STMTransitionAction<?> getBean(String eventId) {
+        return getBean(eventId, null);
+    }
+
+    public STMTransitionAction<?> getBean(String eventId, StateEntity entity) {
+        if (entity != null) {
+            STMTransitionAction<?> action = (STMTransitionAction<?>) internallyResolveBean(eventId, entity, ComponentType.TRANSITION_ACTION);
+            if (action != null) {
+                return action;
+            }
+        }
         STMTransitionAction<?> action = (STMTransitionAction<?>) internallyResolveBean(eventId,ComponentType.TRANSITION_ACTION);
         return (action == null)? defaultAction : action;
     }
 
     private Object internallyResolveBean(String name,ComponentType componentType) {
+        return internallyResolveBean(name, null, componentType);
+    }
+
+    private Object internallyResolveBean(String name, StateEntity entity, ComponentType componentType) {
         try {
             String contextBasedPrefix = resolvePrefixFromContext();
-            String beanNameWithContextPrefix = buildBeanName(contextBasedPrefix, name,componentType);
-
-            if (applicationContext.containsBean(beanNameWithContextPrefix)) {
-                return applicationContext.getBean(beanNameWithContextPrefix);
+            Object contextBean = resolveByPrefixAndEntity(contextBasedPrefix, name, entity, componentType);
+            if (contextBean != null) {
+                return contextBean;
             }
 
-            String fallbackBeanName = buildBeanName(prefix, name,componentType);
-            if (applicationContext.containsBean(fallbackBeanName)) {
-                return applicationContext.getBean(fallbackBeanName);
-            }
+            return resolveByPrefixAndEntity(prefix, name, entity, componentType);
         } catch (Exception ignored) {
             return null;
         }
-        return null;
     }
 
     private String resolvePrefixFromContext() {
@@ -111,14 +122,39 @@ public class STMTransitionActionResolver {
         return null;
     }
 
+    private Object resolveByPrefixAndEntity(String resolvedPrefix, String eventId,
+                                            StateEntity entity, ComponentType componentType) {
+        if (entity != null) {
+            Class<?> type = entity.getClass();
+            if (StateEntity.class.isAssignableFrom(type)) {
+                String beanName = buildBeanName(resolvedPrefix, type.getSimpleName(), eventId, componentType);
+                if (applicationContext.containsBean(beanName)) {
+                    return applicationContext.getBean(beanName);
+                }
+            }
+        }
+        String fallbackBeanName = buildBeanName(resolvedPrefix, eventId, componentType);
+        if (applicationContext.containsBean(fallbackBeanName)) {
+            return applicationContext.getBean(fallbackBeanName);
+        }
+        return null;
+    }
+
     private String buildBeanName(String resolvedPrefix, String eventId,ComponentType componentType) {
+        return buildBeanName(resolvedPrefix, null, eventId, componentType);
+    }
+
+    private String buildBeanName(String resolvedPrefix, String entityName, String eventId,ComponentType componentType) {
         String suffix = "";
         if (useSuffix){
             suffix = componentType.suffix();
         }
+        String beanCore = ((entityName == null || entityName.isEmpty())
+                ? ""
+                : entityName) + capitalize(eventId);
         return (resolvedPrefix == null || resolvedPrefix.isEmpty())
-                ? (eventId + suffix)
-                : (resolvedPrefix + capitalize(eventId) + suffix);
+                ? (uncapitalize(beanCore) + suffix)
+                : (resolvedPrefix + beanCore + suffix);
     }
 
 

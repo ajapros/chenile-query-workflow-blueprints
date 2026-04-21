@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<states>
+	<event-information eventId='complete' meta-bodyType='org.chenile.workflow.param.MinimalPayload'/>
+	<default-transition-action componentName="vehicleSTMTransitionAction"/>
+	<flow id='VEHICLE_FLOW' default='true'>
+		<entry-action componentName="vehicleEntryAction" />
+		<exit-action componentName="vehicleExitAction" />
+		<manual-state id='OPEN' initialState='true'>
+			<on eventId='dispatch' newStateId='DISPATCHED'/>
+		</manual-state>
+		<manual-state id='DISPATCHED'>
+			<on eventId='complete' newStateId='COMPLETED'/>
+		</manual-state>
+		<manual-state id='COMPLETED' />
+	</flow>
+</states>

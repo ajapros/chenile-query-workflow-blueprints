@@ -6,6 +6,7 @@ import org.chenile.stm.STM;
 import org.chenile.stm.State;
 import org.chenile.stm.StateEntity;
 import org.chenile.stm.exception.STMException;
+import org.chenile.utils.entity.model.ChenileEntity;
 import org.chenile.stm.impl.STMActionsInfoProvider;
 import org.chenile.utils.entity.service.EntityStore;
 import org.chenile.workflow.api.StateEntityService;
@@ -126,7 +127,7 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 	
 	@Override
 	public List<Map<String, String>> getAllowedActionsAndMetadata(String id) {
-		T entity = (T) entityStore.retrieve(id);
+		T entity = entityStore.retrieve(id);
 		if (entity == null) {
 			throw new NotFoundException(6003, new Object[] {id});
 		}
@@ -143,7 +144,7 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 	
 	@Override
 	public StateEntityServiceResponse<T> retrieve(String id) {
-		T entity = (T) entityStore.retrieve(id);
+		T entity = entityStore.retrieve(id);
 		if (entity == null) {
 			throw new NotFoundException(6003, new Object[] {id});
 		}

@@ -2,10 +2,13 @@ package org.chenile.workflow.service.stmcmds;
 
 import org.chenile.core.context.ChenileExchange;
 import org.chenile.owiz.Command;
+import org.chenile.stm.StateEntity;
 import org.chenile.stm.impl.STMActionsInfoProvider;
 import org.chenile.stm.model.EventInformation;
-import org.chenile.stm.model.Transition;
+import org.chenile.utils.entity.service.EntityStore;
 import org.chenile.workflow.service.impl.StateEntityServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.core.type.TypeReference;
 
 import java.lang.reflect.Method;
@@ -28,8 +31,10 @@ import java.util.Map;
  *
  */
 	public class StmBodyTypeSelector implements Command<ChenileExchange>{
+		private static final Logger logger = LoggerFactory.getLogger(StmBodyTypeSelector.class);
 		private STMTransitionActionResolver stmTransitionActionResolver = null;
 		private final STMActionsInfoProvider stmActionsInfoProvider;
+		private EntityStore<? extends StateEntity> entityStore = null;
 
 		public record EventData(String description, TypeReference<?> typeReference){}
 		private  Map<String, EventData> configs = null;
@@ -41,6 +46,14 @@ import java.util.Map;
 							   STMTransitionActionResolver stmTransitionActionResolver) {
 		this.stmActionsInfoProvider = stmActionsInfoProvider;
 		this.stmTransitionActionResolver = stmTransitionActionResolver;
+	}
+
+	public StmBodyTypeSelector(STMActionsInfoProvider stmActionsInfoProvider,
+							   STMTransitionActionResolver stmTransitionActionResolver,
+							   EntityStore<? extends StateEntity> entityStore) {
+		this.stmActionsInfoProvider = stmActionsInfoProvider;
+		this.stmTransitionActionResolver = stmTransitionActionResolver;
+		this.entityStore = entityStore;
 	}
 
 		public void storeBodyTypeSelector(){
@@ -62,13 +75,20 @@ import java.util.Map;
 	@Override
 	public void execute(ChenileExchange exchange) throws Exception {
 		String eventId = exchange.getHeader("eventID",String.class);
-		TypeReference<?> typeReference = getPayloadBodyType(eventId);
+		StateEntity entity = resolveEntity(exchange);
+		TypeReference<?> typeReference = getPayloadBodyType(eventId, entity);
 		if (null != typeReference) {
 			exchange.setBodyType(typeReference);
 		}
 	}
 
 	public  TypeReference<?> getPayloadBodyType(String eventId) throws ClassNotFoundException {
+		return getPayloadBodyType(eventId, null);
+	}
+
+	public  TypeReference<?> getPayloadBodyType(String eventId, StateEntity entity) throws ClassNotFoundException {
+		TypeReference<?> derivedType = checkIfPayloadTypeCanBeDerived(eventId, entity);
+		if (derivedType != null) return derivedType;
 		EventInformation eventInformation = stmActionsInfoProvider.getEventInformation(eventId);
 		if (null != eventInformation &&
 				eventInformation.getMetadata().get("bodyType")!=null) {
@@ -83,7 +103,7 @@ import java.util.Map;
 
 			};
 		}
-		return checkIfPayloadTypeCanBeDerived(eventId);
+		return checkIfPayloadTypeCanBeDerived(eventId, null);
 	}
 
 
@@ -94,10 +114,10 @@ import java.util.Map;
 	 * It computes the body type from the second argument of the {@link AbstractSTMTransitionAction#transitionTo} method that was
 	 * overridden by the transition action.</p>
 	 */
-	private TypeReference<?> checkIfPayloadTypeCanBeDerived(String eventId) {
+	private TypeReference<?> checkIfPayloadTypeCanBeDerived(String eventId, StateEntity entity) {
 		if (stmTransitionActionResolver == null) return null;
 		try{
-			Object bean = stmTransitionActionResolver.getBean(eventId);
+			Object bean = stmTransitionActionResolver.getBean(eventId, entity);
 			if (bean == null) return null;
 			if (!AbstractSTMTransitionAction.class.isAssignableFrom(bean.getClass()))return null;
 			Method[] methods = bean.getClass().getDeclaredMethods();
@@ -113,8 +133,26 @@ import java.util.Map;
 				};
 			}
 
-		}catch(Exception ignored){}
+		}catch(Exception e){
+			logger.warn("Unable to derive payload type for eventId {}", eventId, e);
+		}
 		return null;
+	}
+
+	private TypeReference<?> checkIfPayloadTypeCanBeDerived(String eventId) {
+		return checkIfPayloadTypeCanBeDerived(eventId, null);
+	}
+
+	private StateEntity resolveEntity(ChenileExchange exchange) {
+		if (entityStore == null) return null;
+		String id = exchange.getHeader("id", String.class);
+		if (id == null) return null;
+		try {
+			return entityStore.retrieve(id);
+		} catch (Exception e) {
+			logger.warn("Unable to resolve entity for id {}", id, e);
+			return null;
+		}
 	}
 
 	public Map<String, EventData> getConfigs() {

@@ -105,7 +105,7 @@ public class BaseTransitionAction<T extends StateEntity> implements STMTransitio
 			STMInternalTransitionInvoker<?> stm, Transition transition) throws Exception {
 		if(activityChecker != null) doActivityManagement(entity,transitionParam,startState,eventId,transition);
 		if (stmTransitionActionResolver == null) return;
-		STMTransitionAction<T> action = (STMTransitionAction<T>) stmTransitionActionResolver.getBean(eventId);
+		STMTransitionAction<T> action = (STMTransitionAction<T>) stmTransitionActionResolver.getBean(eventId, entity);
 		if (action != null) {
 			action.doTransition(entity,transitionParam,startState,eventId,endState,
 					stm,transition);
