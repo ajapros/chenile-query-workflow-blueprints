@@ -2,10 +2,10 @@ package org.chenile.workflow.cli;
 
 import org.chenile.stm.ConfigProvider;
 import org.chenile.stm.EnablementStrategy;
-import org.chenile.stm.State;
 import org.chenile.stm.dummy.DummyStore;
 import org.chenile.stm.exception.STMException;
 import org.chenile.stm.impl.*;
+import org.chenile.workflow.info.STMFlowStoreInfoHelper;
 import org.chenile.workflow.puml.STMPlantUmlSDGenerator;
 import org.chenile.workflow.testcases.STMTestCaseGenerator;
 import org.chenile.workflow.testcases.Testcase;
@@ -25,11 +25,12 @@ public class CLIHelper {
     }
 
     public String allowedActions(CLIParams params) throws Exception {
+        return allowedActionsAsList(params).toString();
+    }
+
+    public List<String> allowedActionsAsList(CLIParams params) throws Exception {
         process(params);
-        String defaultFlowId = this.stmFlowStore.getDefaultFlow();
-        State state = new State(params.stateForAllowedActions, defaultFlowId);
-        List<String> allowedActions = this.infoProvider.getAllowedActions(state);
-        return allowedActions.toString();
+        return this.storeInfoHelper.allowedActions(params.stateForAllowedActions, params.flowId);
     }
     public void renderStateDiagram(CLIParams params,String outputFile) throws Exception {
         out(renderStateDiagram(params),outputFile);
@@ -44,7 +45,7 @@ public class CLIHelper {
 
     public String toJson(CLIParams params) throws Exception {
         process(params);
-        return this.stmFlowStore.toJson();
+        return this.storeInfoHelper.toMap().toString();
     }
 
     public int numTests(CLIParams params) throws Exception {
@@ -68,31 +69,28 @@ public class CLIHelper {
 
     public Map<String,String> visualizeTestcaseAsStateDiagram(CLIParams params) throws Exception {
         process(params);
-        return this.stmTestCaseGenerator.visualizeTestcasesWithStateDiagram();
+        return this.storeInfoHelper.visualizeTestcaseAsStateDiagram();
     }
 
 
     public String renderTestPuml(CLIParams params) throws Exception {
         process(params);
-        return this.stmTestCaseGenerator.visualizeTestcases();
+        return this.storeInfoHelper.renderTestPuml();
     }
 
     public String renderStateDiagram(CLIParams params) throws Exception {
         process(params);
-        if (params.stylingFile != null || params.stylingPropertiesText != null){
-            loadStylingProperties(params);
-        }
-        return this.generator.toStateDiagram();
+        return this.storeInfoHelper.renderStateDiagram(resolveStylingPropertiesText(params));
     }
 
     public String renderTestCases(CLIParams params) throws Exception {
         process(params);
-        return this.stmTestCaseGenerator.toTestCase();
+        return this.storeInfoHelper.renderTestCases();
     }
 
     public Map<String,Object> toMap(CLIParams params) throws Exception {
         process(params);
-        return this.stmFlowStore.toMap();
+        return this.storeInfoHelper.toMap();
     }
 
     public List<Testcase> renderTestCasesAsObject(CLIParams params) throws Exception {
@@ -189,34 +187,27 @@ public class CLIHelper {
         }
     }
 
-    private void loadStylingProperties(CLIParams params) throws Exception {
-        if (params.stylingFile != null)
-            loadStylingPropertiesFromFile(params);
-        else if (params.stylingPropertiesText != null)
-           loadStylingPropertiesFromText(params);
-    }
-
-    private void loadStylingPropertiesFromFile(CLIParams params) throws Exception{
-        try (InputStream inputStream = Files.newInputStream(params.stylingFile.toPath())){
-            this.generator.pumlStyler.load(inputStream);
-        }
-    }
-
-    private void loadStylingPropertiesFromText(CLIParams params) throws Exception{
-        try (InputStream inputStream = new ByteArrayInputStream(params.stylingPropertiesText.getBytes())){
-            this.generator.pumlStyler.load(inputStream);
-        }
-    }
-
     private void initProcessors(STMFlowStoreImpl stmFlowStoreImpl,XmlFlowReader flowReader) {
         this.generator = new STMPlantUmlSDGenerator(stmFlowStoreImpl);
         this.infoProvider = new STMActionsInfoProvider(stmFlowStoreImpl);
         this.stmTestCaseGenerator = new STMTestCaseGenerator(stmFlowStoreImpl);
         this.stmFlowStore = stmFlowStoreImpl;
         this.xmlFlowReader = flowReader;
+        this.storeInfoHelper = new STMFlowStoreInfoHelper(stmFlowStoreImpl, this.infoProvider);
+    }
+
+    private String resolveStylingPropertiesText(CLIParams params) throws Exception {
+        if (params.stylingPropertiesText != null) {
+            return params.stylingPropertiesText;
+        }
+        if (params.stylingFile == null) {
+            return null;
+        }
+        return Files.readString(params.stylingFile.toPath());
     }
     private STMPlantUmlSDGenerator generator;
     private STMActionsInfoProvider infoProvider;
     private STMFlowStoreImpl stmFlowStore;
     private STMTestCaseGenerator stmTestCaseGenerator;
+    private STMFlowStoreInfoHelper storeInfoHelper;
 }

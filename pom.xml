@@ -11,6 +11,7 @@
 			<module>query-api</module>
 			<module>workflow-api</module>
 			<module>workflow-service</module>
+			<module>workflow-info</module>
 			<module>cucumber-workflow-utils</module>
       <module>workflow-utils</module>
       <module>stm-generate-puml</module>

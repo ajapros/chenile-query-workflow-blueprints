@@ -112,6 +112,7 @@ That gives the generated model module the shared workflow types such as:
 The generated service POM depends on:
 
 - `workflow-service`
+- `workflow-info`
 - optionally `cucumber-workflow-utils`
 - the Maven plugin `stm-generate-puml`
 
@@ -126,6 +127,7 @@ The generated Spring configuration creates:
 - `STMActionsInfoProvider`
 - `EntityStore`
 - `StateEntityServiceImpl`
+- `StateEntityInfoServiceImpl`
 - `STMTransitionActionResolver`
 - `StmBodyTypeSelector`
 - `BaseTransitionAction`
@@ -150,6 +152,17 @@ The generated controllers expose REST endpoints like:
 They return `StateEntityServiceResponse<DomainEntity>` and target a generated bean named like `_serviceStateEntityService_`.
 
 That bean is created using `StateEntityServiceImpl` from this repository.
+
+In addition, the generated workflow service now exposes runtime workflow-info endpoints like:
+
+- `POST /{service}/info/state-diagram`
+- `POST /{service}/info/allowed-actions`
+- `POST /{service}/info/json`
+- `POST /{service}/info/test-cases`
+- `POST /{service}/info/test-visualization`
+- `POST /{service}/info/test-state-diagrams`
+
+These endpoints are backed by a generated bean named like `_serviceStateEntityInfoService_`, which is created using `StateEntityInfoServiceImpl` from `workflow-info`.
 
 ### Convention-based action binding
 
@@ -203,8 +216,9 @@ Instead, it consumes `workflow-utils` indirectly through the `stm-generate-puml`
 3. The API module depends on `workflow-api`.
 4. The service module depends on `workflow-service`.
 5. The generated configuration instantiates `StateEntityServiceImpl` and related STM components.
-6. Generated transition action beans are resolved by `STMTransitionActionResolver`.
-7. The generated controller exposes create, retrieve, and event-processing endpoints.
+6. The generated configuration also instantiates `StateEntityInfoServiceImpl` from the same `STMFlowStoreImpl` and `STMActionsInfoProvider`.
+7. Generated transition action beans are resolved by `STMTransitionActionResolver`.
+8. Generated controllers expose both workflow mutation endpoints and workflow introspection endpoints.
 
 ### Example 3: Generated custom workflow from XML
 

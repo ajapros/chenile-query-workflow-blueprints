@@ -31,11 +31,18 @@ It is a multi-module Maven repository. The top-level parent POM aggregates reusa
   Generic implementation for workflow-enabled entities using Chenile STM.
   It handles create, process, process-by-id, retrieve, allowed-action lookup, action resolution, activity helpers, and post-save hooks.
 
+- `workflow-info`
+  Chenile service layer for workflow introspection.
+  It provides:
+  - an XML-driven `WorkflowInfoService` for rendering diagrams, JSON, allowed actions, and generated test artifacts from workflow XML
+  - reusable `StateEntityInfoServiceImpl` support for live workflow services that already have an initialized `STMFlowStoreImpl`
+
 ### Tooling and test-support modules
 
 - `workflow-utils`
   CLI and helper utilities for working with workflow XML definitions.
   Supports rendering UML, listing allowed actions, converting XML to JSON, and generating or visualizing test cases.
+  Its shared `STMFlowStoreInfoHelper` is also used by `workflow-info` and runtime workflow info services.
 
 - `cucumber-workflow-utils`
   Reusable Cucumber steps for workflow testing.
@@ -60,7 +67,8 @@ The dependency flow is intentionally layered:
 4. `chenile-query-service` depends on `query-api` and `workflow-api`.
 5. `chenile-query-controller` depends on `chenile-query-service`.
 6. `workflow-utils` depends on `workflow-service`.
-7. `stm-generate-puml` depends on `workflow-utils`.
+7. `workflow-info` depends on `workflow-api` and `workflow-utils`.
+8. `stm-generate-puml` depends on `workflow-utils`.
 
 This gives the repository a clean split between:
 
@@ -113,6 +121,21 @@ This means the blueprint is designed so that application code mainly provides:
 
 The generic service handles the orchestration.
 
+## Workflow Info Flow
+
+The workflow info path now has two variants:
+
+1. Offline XML-driven introspection:
+   - `workflow-info` exposes `workflowInfoService`
+   - requests supply `xmlText`
+   - the service uses `workflow-utils` to build a temporary flow store and emit diagrams, JSON, allowed actions, and generated test artifacts
+2. Runtime-bound introspection:
+   - generated workflow-service blueprints instantiate `_serviceStateEntityInfoService_`
+   - that bean is a `StateEntityInfoServiceImpl` constructed from the already-wired `STMFlowStoreImpl` and `STMActionsInfoProvider`
+   - generated `StateEntityInfoController` endpoints expose admin-style workflow introspection for the live service under `/{service}/info/...`
+
+This split keeps standalone workflow inspection separate from live service inspection while sharing the same store-driven logic.
+
 ## Configuration Model
 
 ### Query blueprint configuration
@@ -131,6 +154,7 @@ The workflow blueprint expects:
 - workflow XML definitions for the STM
 - Spring beans implementing transition actions or hooks where needed
 - entity persistence via an `EntityStore`
+- optional generated runtime workflow info endpoints backed by `_serviceStateEntityInfoService_`
 
 ## Conventions Used
 
@@ -138,6 +162,7 @@ The workflow blueprint expects:
 - Workflow actions are conventionally resolved from event names and workflow prefixes.
 - The query layer can enrich results with workflow action metadata.
 - Tooling works directly from workflow XML definitions, so documentation, tests, and diagrams can all be generated from the same source model.
+- Runtime workflow info beans follow the same generated naming convention as the primary workflow service beans, for example `_orderStateEntityInfoService_`.
 
 ## Recommended Reading Order
 
@@ -203,6 +228,7 @@ This repository is best viewed as a blueprint library:
 - `query-api` and `workflow-api` define reusable contracts
 - `chenile-query-service` and `workflow-service` provide reusable runtime implementations
 - `chenile-query-controller` exposes the query runtime over HTTP
+- `workflow-info` exposes workflow introspection over HTTP and provides the reusable runtime-bound `StateEntityInfoServiceImpl`
 - `workflow-utils`, `cucumber-workflow-utils`, and `stm-generate-puml` support visualization, testing, and developer workflow
 
 Applications built on Chenile are expected to import these modules and supply domain-specific configuration, persistence, and action implementations on top.

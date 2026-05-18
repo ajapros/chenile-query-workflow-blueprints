@@ -29,6 +29,12 @@ Applications can add support for another database by registering a Spring bean t
 `QueryExecutionProvider` and setting `query.provider` to that provider name. See
 [the query provider extension guide](https://chenile.org/query-provider-extension.html) for JDBC and non-SQL extension examples.
 
+The repository now also includes `workflow-info`, a Chenile service layer for workflow introspection.
+It supports:
+
+- an XML-driven `workflowInfoService` built on `workflow-utils`
+- a runtime-bound `StateEntityInfoServiceImpl` that is instantiated by generated workflow-service blueprints against a live `STMFlowStoreImpl`
+
 # About chenile
 
 Chenile is an open source framework for creating Micro services using Java and Spring Boot. 

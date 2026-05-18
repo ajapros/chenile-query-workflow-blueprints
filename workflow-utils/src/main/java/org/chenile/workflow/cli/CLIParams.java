@@ -6,6 +6,7 @@ public class CLIParams {
     public File[] xmlFiles;
     public String xmlText;
     public String stateForAllowedActions;
+    public String flowId;
     public File stylingFile;
     public String stylingPropertiesText;
     public File enablementPropertiesFile;
