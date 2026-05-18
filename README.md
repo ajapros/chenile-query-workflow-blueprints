@@ -34,6 +34,7 @@ It supports:
 
 - an XML-driven `workflowInfoService` built on `workflow-utils`
 - a runtime-bound `StateEntityInfoServiceImpl` that is instantiated by generated workflow-service blueprints against a live `STMFlowStoreImpl`
+- PNG-rendered workflow diagrams for admin and tooling use, instead of raw PlantUML text
 
 # About chenile
 

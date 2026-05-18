@@ -18,11 +18,12 @@ class WorkflowInfoServiceImplTest {
         WorkflowInfoRequest request = new WorkflowInfoRequest();
         request.setXmlText(loadWorkflowXml());
 
-        assertTrue(service.renderStateDiagram(request).getData().startsWith("@startuml"));
+        assertTrue(service.renderStateDiagram(request).getData().length > 0);
         assertFalse(service.toJson(request).getData().isEmpty());
         assertTrue(service.generateTestCases(request).getData().contains("\"steps\""));
         assertTrue(service.visualizeTestCases(request).getData().contains("assign"));
         assertFalse(service.renderTestsAsStateDiagram(request).getData().isEmpty());
+        assertTrue(service.renderTestsAsStateDiagram(request).getData().values().iterator().next().length > 0);
     }
 
     @Test

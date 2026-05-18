@@ -19,7 +19,7 @@ import java.util.Map;
 @ChenileController(value = "workflowInfo", serviceName = "workflowInfoService")
 public class WorkflowInfoController extends ControllerSupport {
     @PostMapping("/workflow-info/state-diagram")
-    public ResponseEntity<GenericResponse<WorkflowInfoResponse<String>>> renderStateDiagram(
+    public ResponseEntity<GenericResponse<WorkflowInfoResponse<byte[]>>> renderStateDiagram(
             HttpServletRequest request,
             @RequestBody WorkflowInfoRequest workflowInfoRequest) {
         return process("renderStateDiagram", request, workflowInfoRequest);
@@ -54,7 +54,7 @@ public class WorkflowInfoController extends ControllerSupport {
     }
 
     @PostMapping("/workflow-info/test-state-diagrams")
-    public ResponseEntity<GenericResponse<WorkflowInfoResponse<Map<String, String>>>> renderTestsAsStateDiagram(
+    public ResponseEntity<GenericResponse<WorkflowInfoResponse<Map<String, byte[]>>>> renderTestsAsStateDiagram(
             HttpServletRequest request,
             @RequestBody WorkflowInfoRequest workflowInfoRequest) {
         return process("renderTestsAsStateDiagram", request, workflowInfoRequest);

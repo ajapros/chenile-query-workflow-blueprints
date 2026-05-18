@@ -36,6 +36,7 @@ It is a multi-module Maven repository. The top-level parent POM aggregates reusa
   It provides:
   - an XML-driven `WorkflowInfoService` for rendering diagrams, JSON, allowed actions, and generated test artifacts from workflow XML
   - reusable `StateEntityInfoServiceImpl` support for live workflow services that already have an initialized `STMFlowStoreImpl`
+  - PNG image output for state-diagram endpoints so admin tooling can render workflow visuals directly
 
 ### Tooling and test-support modules
 
@@ -129,10 +130,12 @@ The workflow info path now has two variants:
    - `workflow-info` exposes `workflowInfoService`
    - requests supply `xmlText`
    - the service uses `workflow-utils` to build a temporary flow store and emit diagrams, JSON, allowed actions, and generated test artifacts
+   - diagram endpoints return PNG bytes encoded in the JSON payload
 2. Runtime-bound introspection:
    - generated workflow-service blueprints instantiate `_serviceStateEntityInfoService_`
    - that bean is a `StateEntityInfoServiceImpl` constructed from the already-wired `STMFlowStoreImpl` and `STMActionsInfoProvider`
    - generated `StateEntityInfoController` endpoints expose admin-style workflow introspection for the live service under `/{service}/info/...`
+   - admin tooling should only surface workflow visualization actions when that generated companion info service is actually present
 
 This split keeps standalone workflow inspection separate from live service inspection while sharing the same store-driven logic.
 

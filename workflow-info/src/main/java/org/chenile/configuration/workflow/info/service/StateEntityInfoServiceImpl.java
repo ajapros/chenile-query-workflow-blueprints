@@ -21,9 +21,10 @@ public class StateEntityInfoServiceImpl implements StateEntityInfoService {
     }
 
     @Override
-    public WorkflowInfoResponse<String> renderStateDiagram(StateEntityInfoRequest request) {
+    public WorkflowInfoResponse<byte[]> renderStateDiagram(StateEntityInfoRequest request) {
         try {
-            return responseOf(infoHelper.renderStateDiagram(request == null ? null : request.getStylingPropertiesText()));
+            String puml = infoHelper.renderStateDiagram(request == null ? null : request.getStylingPropertiesText());
+            return responseOf(PlantUmlToImageConverter.toPng(puml));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -61,9 +62,9 @@ public class StateEntityInfoServiceImpl implements StateEntityInfoService {
     }
 
     @Override
-    public WorkflowInfoResponse<Map<String, String>> renderTestsAsStateDiagram(StateEntityInfoRequest request) {
+    public WorkflowInfoResponse<Map<String, byte[]>> renderTestsAsStateDiagram(StateEntityInfoRequest request) {
         try {
-            return responseOf(infoHelper.visualizeTestcaseAsStateDiagram());
+            return responseOf(PlantUmlToImageConverter.toPngMap(infoHelper.visualizeTestcaseAsStateDiagram()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

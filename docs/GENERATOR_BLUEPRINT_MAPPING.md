@@ -163,6 +163,7 @@ In addition, the generated workflow service now exposes runtime workflow-info en
 - `POST /{service}/info/test-state-diagrams`
 
 These endpoints are backed by a generated bean named like `_serviceStateEntityInfoService_`, which is created using `StateEntityInfoServiceImpl` from `workflow-info`.
+The state-diagram endpoints return PNG bytes in the payload so admin tooling can render the image directly.
 
 ### Convention-based action binding
 

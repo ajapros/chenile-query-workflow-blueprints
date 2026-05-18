@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 public interface StateEntityInfoService {
-    WorkflowInfoResponse<String> renderStateDiagram(StateEntityInfoRequest request);
+    WorkflowInfoResponse<byte[]> renderStateDiagram(StateEntityInfoRequest request);
     WorkflowInfoResponse<List<String>> allowedActions(StateEntityAllowedActionsRequest request);
     WorkflowInfoResponse<Map<String,Object>> toJson(StateEntityInfoRequest request);
     WorkflowInfoResponse<String> generateTestCases(StateEntityInfoRequest request);
     WorkflowInfoResponse<String> visualizeTestCases(StateEntityInfoRequest request);
-    WorkflowInfoResponse<Map<String,String>> renderTestsAsStateDiagram(StateEntityInfoRequest request);
+    WorkflowInfoResponse<Map<String,byte[]>> renderTestsAsStateDiagram(StateEntityInfoRequest request);
 }

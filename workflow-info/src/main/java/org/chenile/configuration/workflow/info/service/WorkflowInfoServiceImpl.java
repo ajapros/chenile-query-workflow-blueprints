@@ -20,10 +20,10 @@ public class WorkflowInfoServiceImpl implements WorkflowInfoService {
     }
 
     @Override
-    public WorkflowInfoResponse<String> renderStateDiagram(WorkflowInfoRequest request) {
+    public WorkflowInfoResponse<byte[]> renderStateDiagram(WorkflowInfoRequest request) {
         validateXmlText(request);
         try {
-            return responseOf(cliHelper.renderStateDiagram(toCliParams(request)));
+            return responseOf(PlantUmlToImageConverter.toPng(cliHelper.renderStateDiagram(toCliParams(request))));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -76,10 +76,10 @@ public class WorkflowInfoServiceImpl implements WorkflowInfoService {
     }
 
     @Override
-    public WorkflowInfoResponse<Map<String, String>> renderTestsAsStateDiagram(WorkflowInfoRequest request) {
+    public WorkflowInfoResponse<Map<String, byte[]>> renderTestsAsStateDiagram(WorkflowInfoRequest request) {
         validateXmlText(request);
         try {
-            return responseOf(cliHelper.visualizeTestcaseAsStateDiagram(toCliParams(request)));
+            return responseOf(PlantUmlToImageConverter.toPngMap(cliHelper.visualizeTestcaseAsStateDiagram(toCliParams(request))));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
