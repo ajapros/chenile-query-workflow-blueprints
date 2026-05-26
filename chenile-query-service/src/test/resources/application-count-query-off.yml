@@ -1,0 +1,20 @@
+query:
+  pagination:
+    countQueryEnabled: false
+  datasources:
+    tenant1:
+      maximumPoolSize: '10'
+      type: com.zaxxer.hikari.HikariDataSource
+      username: demo
+      password: password
+      minimumIdle: '2'
+      idleTimeout: '5000'
+      jdbcUrl: jdbc:h2:mem:demo_count_query_off_tenant1;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    tenant2:
+      maximumPoolSize: '10'
+      type: com.zaxxer.hikari.HikariDataSource
+      username: demo
+      password: password
+      minimumIdle: '2'
+      idleTimeout: '5000'
+      jdbcUrl: jdbc:h2:mem:demo_count_query_off_tenant2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE

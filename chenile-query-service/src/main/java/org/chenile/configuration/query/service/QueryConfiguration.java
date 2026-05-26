@@ -1,8 +1,10 @@
 package org.chenile.configuration.query.service;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
@@ -16,6 +18,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -24,7 +27,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.chenile.query.service.QueryStore;
 import org.chenile.query.service.SearchService;
+import org.chenile.query.service.impl.MybatisQueryExecutionProvider;
 import org.chenile.query.service.impl.NamedQueryServiceSpringMybatisImpl;
+import org.chenile.query.service.impl.QueryExecutionProvider;
 import org.chenile.query.service.impl.QueryDefinitions;
 import org.chenile.query.service.impl.QueryPolymorph;
 import org.chenile.query.service.interceptor.QueryUserFilterInterceptor;
@@ -36,7 +41,7 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 @Configuration
 public class QueryConfiguration {
 
-	@Value("${query.mapperFiles}")
+	@Value("${query.mapperFiles:}")
 	private Resource[] mapperFiles;
 	
 	@Value("${query.definitionFiles}")
@@ -57,7 +62,14 @@ public class QueryConfiguration {
 		return new QueryDatasourcesProperties();
 	}
 
+	@Bean
+	@ConfigurationProperties(prefix = "query.pagination")
+	QueryPaginationProperties queryPaginationProperties() {
+		return new QueryPaginationProperties();
+	}
+
     @Bean("queryTargetDataSources")
+	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
     Map<String, DataSource> queryTargetDataSources(@Autowired QueryDatasourcesProperties properties) {
 		Map<String, DataSource> targetDataSources = new LinkedHashMap<>();
 		for (Map.Entry<String, Map<String, String>> entry : properties.getDatasources().entrySet()) {
@@ -76,6 +88,7 @@ public class QueryConfiguration {
 	}
 
     @Bean("queryDatasource")
+	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
     DataSource queryDataSource(@Autowired @Qualifier("queryTargetDataSources") Map<String, DataSource> targetDataSources,
 							   @Autowired QueryDatasourcesProperties properties,
 							   @Autowired ContextContainer contextContainer) {
@@ -105,6 +118,7 @@ public class QueryConfiguration {
 	}
 
     @Bean
+	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
     SqlSessionFactory sqlSessionFactory(@Autowired @Qualifier("queryDatasource") DataSource queryDataSource)
             throws Exception {
 		SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
@@ -113,13 +127,45 @@ public class QueryConfiguration {
 		return factoryBean.getObject();
 	}
 
-    @Bean
-    SearchService<Map<String, Object>> searchService(@Autowired @Qualifier("queryDefinitions") 
-       QueryStore queryStore) {
-		return new NamedQueryServiceSpringMybatisImpl(queryStore);
+	@Bean("mybatisQueryExecutionProvider")
+	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
+	QueryExecutionProvider mybatisQueryExecutionProvider(@Autowired SqlSessionTemplate sqlSessionTemplate) {
+		return new MybatisQueryExecutionProvider(sqlSessionTemplate);
+	}
+
+	QueryExecutionProvider queryExecutionProvider(QueryDatasourcesProperties properties,
+			List<QueryExecutionProvider> queryExecutionProviders) {
+		String provider = properties.getProvider();
+		if (provider == null || provider.trim().isEmpty()) {
+			provider = MybatisQueryExecutionProvider.PROVIDER_NAME;
+		} else {
+			provider = provider.trim();
+		}
+		for (QueryExecutionProvider candidate : queryExecutionProviders) {
+			if (candidate.getProviderName().equalsIgnoreCase(provider)) {
+				return candidate;
+			}
+		}
+		String supportedProviders = queryExecutionProviders.stream()
+				.map(QueryExecutionProvider::getProviderName)
+				.collect(Collectors.joining(", "));
+		throw new IllegalArgumentException("Unsupported query provider: " + provider
+				+ ". Available query providers: " + supportedProviders);
 	}
 
     @Bean
+    SearchService<Map<String, Object>> searchService(@Autowired @Qualifier("queryDefinitions")
+       QueryStore queryStore, @Autowired QueryPaginationProperties queryPaginationProperties,
+	   @Autowired QueryDatasourcesProperties queryDatasourcesProperties,
+	   @Autowired List<QueryExecutionProvider> queryExecutionProviders) {
+		NamedQueryServiceSpringMybatisImpl searchService = new NamedQueryServiceSpringMybatisImpl(queryStore);
+		searchService.setPaginationProperties(queryPaginationProperties);
+		searchService.setQueryExecutionProvider(queryExecutionProvider(queryDatasourcesProperties, queryExecutionProviders));
+		return searchService;
+	}
+
+    @Bean
+	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
     SqlSessionTemplate sqlSessionTemplate(@Autowired SqlSessionFactory sqlSessionFactory) {
 		return new SqlSessionTemplate(sqlSessionFactory);
 	}

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.chenile.base.exception.ServerException;
+import org.chenile.configuration.query.service.QueryPaginationProperties;
 import org.chenile.query.service.error.ErrorCodes;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import org.chenile.query.model.ColumnMetadata;
 import org.chenile.query.model.QueryMetadata;
 import org.chenile.query.model.ResponseRow;
 import org.chenile.query.model.SearchRequest;
+import org.chenile.query.model.SearchPaginationInfo;
 import org.chenile.query.model.SearchResponse;
 import org.chenile.query.service.AbstractSearchServiceImpl;
 import org.chenile.query.service.QueryStore;
@@ -28,6 +30,9 @@ import org.chenile.query.service.QueryStore;
  */
 public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImpl{
 	Logger logger = LoggerFactory.getLogger(NamedQueryServiceSpringMybatisImpl.class);
+	private QueryPaginationProperties paginationProperties = new QueryPaginationProperties();
+	private QueryExecutionProvider queryExecutionProvider;
+
 	public NamedQueryServiceSpringMybatisImpl(QueryStore queryStore) {
 		super(queryStore);
 	}
@@ -38,20 +43,44 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 		return search(searchRequest);
 	}
 
-	protected static final String PAGINATION_PART = "pagination";
-	@Autowired SqlSessionTemplate sessionTemplate;
-	
 	/**
 	 * @param sessionTemplate the sessionTemplate to set
 	 */
+	@Autowired(required = false)
 	public void setSessionTemplate(SqlSessionTemplate sessionTemplate) {
-		this.sessionTemplate = sessionTemplate;
+		if (this.queryExecutionProvider == null) {
+			this.queryExecutionProvider = new MybatisQueryExecutionProvider(sessionTemplate);
+		}
+	}
+
+	public void setPaginationProperties(QueryPaginationProperties paginationProperties) {
+		this.paginationProperties = paginationProperties == null ? new QueryPaginationProperties() : paginationProperties;
+	}
+
+	public void setQueryExecutionProvider(QueryExecutionProvider queryExecutionProvider) {
+		this.queryExecutionProvider = queryExecutionProvider;
+	}
+
+	@Override
+	protected void buildOrderByClause(Map<String, Object> filters, List<org.chenile.query.model.SortCriterion> sortCriteria,
+			QueryMetadata queryMetadata) {
+		queryExecutionProvider().applySort(filters, sortCriteria, queryMetadata);
+	}
+
+	@Override
+	protected void constructPagination(Map<String, Object> filters, int startRow, int numRowsInPage) {
+		queryExecutionProvider().applyPagination(filters, startRow, numRowsInPage);
 	}
 
 	protected SearchResponse doSearch(EnhancedSearchRequest searchRequest,SearchResponse searchResponse,QueryMetadata queryMetadata) {
 		// see if there is a count query to process first
 		if (queryMetadata.isPaginated()) {
-			processCountQuery(searchRequest.enhancedFilters,searchResponse,queryMetadata);
+			if (paginationProperties.isCountQueryEnabled()) {
+				processCountQuery(searchRequest.enhancedFilters,searchResponse,queryMetadata);
+			} else {
+				constructPagination(searchRequest.enhancedFilters, getStartRow(searchResponse),
+						searchResponse.getNumRowsInPage() + 1);
+			}
 		}
 		List<Object> list = null;
 		try {
@@ -59,6 +88,13 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 					searchRequest.enhancedFilters);
 		}catch(Exception e){
 			e.printStackTrace();
+		}
+		if (queryMetadata.isPaginated() && !paginationProperties.isCountQueryEnabled()) {
+			boolean nextPageAvailable = list != null && list.size() > searchResponse.getNumRowsInPage();
+			setSlicePaginationInfo(searchResponse, nextPageAvailable);
+			if (nextPageAvailable) {
+				list = new ArrayList<Object>(list.subList(0, searchResponse.getNumRowsInPage()));
+			}
 		}
 		List<ResponseRow> responseList = new ArrayList<ResponseRow>();
 		if (list != null) {
@@ -98,31 +134,39 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 		int in = 0;
 		Object o = null;
 		try {
-			o = sessionTemplate.selectOne(qName, filters);
+			o = queryExecutionProvider().executeCount(qName, filters);
 		}catch(Exception e){
 			throw new ServerException(ErrorCodes.CANNOT_EXECUTE_COUNT_QUERY.getSubError(),
 					new Object[]{qName,filters,e.getMessage()},e);
 		}
 
-		if (!(o instanceof Integer)) {
+		if (!(o instanceof Number)) {
 			throw new ServerException(ErrorCodes.COUNT_QUERY_DOES_NOT_RETURN_INT.getSubError(),
 					new Object[]{queryMetadata.getId()});
 		}
-		in = (Integer)o;
+		in = ((Number)o).intValue();
 		setPaginationInResponse(searchResponse,in);
 		constructPagination(filters,searchResponse.getStartRow(),searchResponse.getNumRowsInPage());
 		return in;
 				
 	}
+
+	private int getStartRow(SearchResponse searchResponse) {
+		int startRow = (searchResponse.getCurrentPage() - 1) * searchResponse.getNumRowsInPage() + 1;
+		searchResponse.setStartRow(startRow);
+		return startRow;
+	}
+
+	private void setSlicePaginationInfo(SearchResponse searchResponse, boolean nextPageAvailable) {
+		SearchPaginationInfo paginationInfo = new SearchPaginationInfo();
+		paginationInfo.setCountQueryExecuted(false);
+		paginationInfo.setTotalCountAvailable(false);
+		paginationInfo.setNextPageAvailable(nextPageAvailable);
+		searchResponse.setPagination(paginationInfo);
+	}
 	
 	protected List<Object> executeQuery(String queryName,Map<String, Object>filters){
-		try {
-			return sessionTemplate.selectList(queryName, filters);
-		}catch(Exception e){
-			logger.error("Cannot execute query",e);
-			throw new ServerException(ErrorCodes.CANNOT_EXECUTE_QUERY.getSubError(),
-					new Object[]{queryName,filters,e.getMessage()},e);
-		}
+		return queryExecutionProvider().executeQuery(queryName, filters);
 	}
 	
 	@Override
@@ -130,6 +174,13 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 		String queryName = searchRequest.originalSearchRequest.getQueryName();
 		Map<String, Object> filters = searchRequest.enhancedFilters;
 		return this.executeQuery(queryName, filters);
+	}
+
+	private QueryExecutionProvider queryExecutionProvider() {
+		if (queryExecutionProvider == null) {
+			throw new IllegalStateException("No query execution provider configured");
+		}
+		return queryExecutionProvider;
 	}
 
 }

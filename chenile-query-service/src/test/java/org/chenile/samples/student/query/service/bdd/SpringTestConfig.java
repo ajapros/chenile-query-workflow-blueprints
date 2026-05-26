@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
@@ -19,20 +20,33 @@ import javax.sql.DataSource;
 public class SpringTestConfig extends SpringBootServletInitializer{
 
 	@Bean
-	public ApplicationRunner querySchemaInitializer(@Qualifier("queryTargetDataSources") Map<String, DataSource> targetDataSources) {
+	public ApplicationRunner querySchemaInitializer(@Qualifier("queryTargetDataSources") Map<String, DataSource> targetDataSources,
+			Environment environment) {
 		return args -> {
 			for (Map.Entry<String, DataSource> entry : targetDataSources.entrySet()) {
 				String tenantId = entry.getKey();
-				ClassPathResource tenantScript = new ClassPathResource("schema-" + tenantId + ".sql");
-				ClassPathResource defaultScript = new ClassPathResource("schema.sql");
+				String provider = environment.getProperty("query.test.schema",
+						environment.getProperty("query.provider", "mybatis"));
 				ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-				if (tenantScript.exists()) {
-					populator.addScript(tenantScript);
-				} else {
-					populator.addScript(defaultScript);
-				}
+				populator.addScript(schemaScript(provider, tenantId));
 				populator.execute(entry.getValue());
 			}
 		};
+	}
+
+	private ClassPathResource schemaScript(String provider, String tenantId) {
+		ClassPathResource providerTenantScript = new ClassPathResource("schema-" + provider + "-" + tenantId + ".sql");
+		if (providerTenantScript.exists()) {
+			return providerTenantScript;
+		}
+		ClassPathResource providerScript = new ClassPathResource("schema-" + provider + ".sql");
+		if (providerScript.exists()) {
+			return providerScript;
+		}
+		ClassPathResource tenantScript = new ClassPathResource("schema-" + tenantId + ".sql");
+		if (tenantScript.exists()) {
+			return tenantScript;
+		}
+		return new ClassPathResource("schema.sql");
 	}
 }

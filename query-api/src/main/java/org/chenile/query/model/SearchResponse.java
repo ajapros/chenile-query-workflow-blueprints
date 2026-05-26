@@ -17,6 +17,7 @@ public class SearchResponse {
 	private List<ResponseRow> list = Collections.emptyList(); // use this if you want to send the output as a list
 	private Map<String, ColumnMetadata> columnMetadata = Collections.emptyMap();
 	private int maxRows;
+	private SearchPaginationInfo pagination;
 	private String cannedReportName;
 	private List<CannedReport> availableCannedReports = Collections.emptyList();
 	/**
@@ -161,6 +162,14 @@ public class SearchResponse {
 
 	public int getMaxRows() {
 		return this.maxRows;
+	}
+
+	public SearchPaginationInfo getPagination() {
+		return pagination;
+	}
+
+	public void setPagination(SearchPaginationInfo pagination) {
+		this.pagination = pagination;
 	}
 
 	public ResponseRow getData() {
