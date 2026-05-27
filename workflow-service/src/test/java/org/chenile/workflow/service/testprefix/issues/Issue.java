@@ -13,6 +13,7 @@ public class Issue extends AbstractExtendedStateEntity {
 	public String resolveComment;
 	public String description;
 	public String openedBy;
+	public String postSaveHookMarker;
 	public State state;
 
 	@Override

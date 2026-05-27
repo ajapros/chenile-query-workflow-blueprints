@@ -21,7 +21,9 @@ import org.chenile.workflow.service.testprefix.issues.CloseIssueAction;
 import org.chenile.workflow.service.testprefix.issues.Issue;
 import org.chenile.workflow.service.testprefix.issues.IssueEntityStore;
 import org.chenile.workflow.service.testprefix.issues.ResolveIssueAction;
+import org.chenile.workflow.service.testprefix.issues.tenant0.Tenant0AssignedPostSaveHook;
 import org.chenile.workflow.service.testprefix.issues.tenant0.Tenant0AssignIssueAction;
+import org.chenile.workflow.service.testprefix.issues.tenant0.Tenant0IssueAssignedPostSaveHook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -78,8 +80,14 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 	// Now we start constructing the STM Components 
 	
 	@Bean GenericEntryAction<Issue> issueEntryAction(@Qualifier("issueEntityStore") IssueEntityStore entityStore,
-			@Qualifier("issueActionsInfoProvider") STMActionsInfoProvider issueInfoProvider){
-		return new GenericEntryAction<Issue>(entityStore,issueInfoProvider);
+			@Qualifier("issueActionsInfoProvider") STMActionsInfoProvider issueInfoProvider,
+			@Qualifier("issuePostSaveHook") PostSaveHook<Issue> issuePostSaveHook){
+		return new GenericEntryAction<Issue>(entityStore,issueInfoProvider, issuePostSaveHook);
+	}
+
+	@Bean PostSaveHook<Issue> issuePostSaveHook(
+			@Qualifier("stmTransitionActionResolver") STMTransitionActionResolver stmTransitionActionResolver) {
+		return new DefaultPostSaveHook<>(stmTransitionActionResolver);
 	}
 	
 	@Bean GenericExitAction<Issue> issueExitAction(){
@@ -138,6 +146,11 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 
 	@Bean
 	Tenant0AssignIssueAction tenant0IssueAssign(){return new Tenant0AssignIssueAction();}
+
+	@Bean
+	Tenant0AssignedPostSaveHook tenant0IssueASSIGNED(){return new Tenant0AssignedPostSaveHook();}
+
+	@Bean
+	Tenant0IssueAssignedPostSaveHook tenant0IssueIssueASSIGNED(){return new Tenant0IssueAssignedPostSaveHook();}
 	
 }
-

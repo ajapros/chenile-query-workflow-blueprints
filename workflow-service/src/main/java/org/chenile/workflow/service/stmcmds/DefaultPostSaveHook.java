@@ -14,7 +14,7 @@ public class DefaultPostSaveHook<StateEntityType extends StateEntity> implements
     public void execute(State startState, State endState, StateEntityType entity, TransientMap payload) {
         String stateId = entity.getCurrentState().getStateId();
         PostSaveHook<StateEntityType> postSaveHook =
-                (PostSaveHook<StateEntityType>) resolver.resolvePostSaveHook(stateId);
+                (PostSaveHook<StateEntityType>) resolver.resolvePostSaveHook(stateId, entity);
         if(postSaveHook != null)  postSaveHook.execute(startState,endState,entity,payload);
     }
 }

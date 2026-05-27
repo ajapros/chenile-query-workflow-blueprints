@@ -76,6 +76,10 @@ public class STMTransitionActionResolver {
         return (PostSaveHook<?>) internallyResolveBean(actionStateName,ComponentType.POST_SAVE_HOOK);
     }
 
+    public PostSaveHook<?> resolvePostSaveHook(String actionStateName, StateEntity entity){
+        return (PostSaveHook<?>) internallyResolveBean(actionStateName, entity, ComponentType.POST_SAVE_HOOK);
+    }
+
     public STMTransitionAction<?> getBean(String eventId) {
         return getBean(eventId, null);
     }

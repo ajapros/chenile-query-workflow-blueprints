@@ -38,6 +38,7 @@ Feature: Tests the Tenant Chenile Workflow with t Prefix.
 		And the REST response key "mutatedEntity.currentState.stateId" is "ASSIGNED"
 		And the REST response key "mutatedEntity.assignee" is "tenant0"
 		And the REST response key "mutatedEntity.assignComment" is "MY-ASSIGNEE-CAN-FIX-THIS"
+		And the REST response key "mutatedEntity.postSaveHookMarker" is "tenant0-issue-assigned"
 
 
 
