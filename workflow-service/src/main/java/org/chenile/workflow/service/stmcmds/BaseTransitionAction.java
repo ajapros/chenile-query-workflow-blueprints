@@ -122,7 +122,7 @@ public class BaseTransitionAction<T extends StateEntity> implements STMTransitio
 		}
 		if (activityChecker.isCompletionChecker(transition) &&
 					!activityChecker.areAllActivitiesComplete(aese,startState))
-			throw new BadRequestException(49000,
+			throw new BadRequestException("WF-49000",
 					"Transition " + eventId + " cannot be invoked without completing all the mandatory activities");
     }
 

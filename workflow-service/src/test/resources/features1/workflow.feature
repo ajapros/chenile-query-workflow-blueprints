@@ -46,7 +46,7 @@ INITIATED -(putInAssemblyLine) -> IN_ASSEMBLY_LINE -> (finishManufacturing) -> O
     Then the REST response does not contain key "mutatedEntity"
     And success is false
     And the http status code is 400
-    And the top level subErrorCode is 49000
+    And the top level subErrorCode is "WF-49000"
 
   Scenario: Perform activity build on the mfgModel with comments.
     Given that "comment" equals "Building the model."

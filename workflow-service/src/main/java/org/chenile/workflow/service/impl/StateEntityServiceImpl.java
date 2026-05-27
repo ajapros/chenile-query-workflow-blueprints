@@ -59,12 +59,12 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 			if (e instanceof STMException && 
 					(((STMException)e).getMessageId() == STMException.INVALID_EVENTID ||
 					((STMException)e).getMessageId() == STMException.INVALID_TRANSITION)) {
-				throw new ErrorNumException(422, 6001,
+				throw new ErrorNumException(422, "WF-6001",
 						"Invalid event or transition: Error = " + e.getMessage());
 			}else {
 				if (e instanceof ErrorNumException ene) throw ene;
 				e.printStackTrace();
-				throw new ErrorNumException(500,6002,
+				throw new ErrorNumException(500,"WF-6002",
 						"Unknown happened in invoking event " + event + " in entity for current state = "
 						+ entity.getCurrentState() + " . Error message = " + e.getMessage(),e);
 			}
