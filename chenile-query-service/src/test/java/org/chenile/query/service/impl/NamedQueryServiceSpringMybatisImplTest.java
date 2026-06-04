@@ -12,6 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.chenile.query.service.QueryStore;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.core.io.ClassPathResource;
 
 class NamedQueryServiceSpringMybatisImplTest {
 
@@ -87,6 +89,97 @@ class NamedQueryServiceSpringMybatisImplTest {
 		assertFalse(response.getPagination().getTotalCountAvailable());
 		assertTrue(response.getPagination().getNextPageAvailable());
 		assertEquals("limit 3 offset 4", capturedFilters(sessionTemplate).get("pagination"));
+	}
+
+	@Test
+	void queryMetadataCanEnableCountWhenGlobalCountIsDisabled() {
+		QueryStore queryStore = mock(QueryStore.class);
+		QueryMetadata queryMetadata = queryMetadata(true);
+		queryMetadata.setCountQueryEnabled(true);
+		when(queryStore.retrieve("students")).thenReturn(queryMetadata);
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("Student.getAll-count"), anyMap())).thenReturn(5);
+		when(sessionTemplate.selectList(eq("Student.getAll"), anyMap())).thenReturn(rows(2));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryStore, sessionTemplate, false);
+		SearchResponse response = service.search(searchRequest(1, 2));
+
+		verify(sessionTemplate).selectOne(eq("Student.getAll-count"), anyMap());
+		assertEquals(5, response.getMaxRows());
+		assertEquals(4, response.getMaxPages());
+		assertNull(response.getPagination());
+		assertEquals("limit 2 offset 0", capturedFilters(sessionTemplate).get("pagination"));
+	}
+
+	@Test
+	void queryMetadataCanDisableCountWhenGlobalCountIsEnabled() {
+		QueryStore queryStore = mock(QueryStore.class);
+		QueryMetadata queryMetadata = queryMetadata(true);
+		queryMetadata.setCountQueryEnabled(false);
+		when(queryStore.retrieve("students")).thenReturn(queryMetadata);
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectList(eq("Student.getAll"), anyMap())).thenReturn(rows(3));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryStore, sessionTemplate, true);
+		SearchResponse response = service.search(searchRequest(1, 2));
+
+		verify(sessionTemplate, never()).selectOne(eq("Student.getAll-count"), anyMap());
+		assertEquals(2, response.getNumRowsReturned());
+		assertNotNull(response.getPagination());
+		assertFalse(response.getPagination().getCountQueryExecuted());
+		assertFalse(response.getPagination().getTotalCountAvailable());
+		assertTrue(response.getPagination().getNextPageAvailable());
+		assertEquals("limit 3 offset 0", capturedFilters(sessionTemplate).get("pagination"));
+	}
+
+	@Test
+	void jsonQueryMetadataCanEnableCountWhenGlobalCountIsDisabled() throws IOException {
+		QueryDefinitions queryDefinitions = queryDefinitionsWithCountOverrides();
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("Student.forceCount-count"), anyMap())).thenReturn(5);
+		when(sessionTemplate.selectList(eq("Student.forceCount"), anyMap())).thenReturn(rows(2));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryDefinitions, sessionTemplate, false);
+		SearchResponse response = service.search(searchRequest("students-force-count", 1, 2));
+
+		verify(sessionTemplate).selectOne(eq("Student.forceCount-count"), anyMap());
+		assertEquals(5, response.getMaxRows());
+		assertEquals(4, response.getMaxPages());
+		assertNull(response.getPagination());
+		assertEquals("limit 2 offset 0", capturedFilters(sessionTemplate, "Student.forceCount").get("pagination"));
+	}
+
+	@Test
+	void jsonQueryMetadataCanDisableCountWhenGlobalCountIsEnabled() throws IOException {
+		QueryDefinitions queryDefinitions = queryDefinitionsWithCountOverrides();
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectList(eq("Student.noCount"), anyMap())).thenReturn(rows(3));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryDefinitions, sessionTemplate, true);
+		SearchResponse response = service.search(searchRequest("students-no-count", 1, 2));
+
+		verify(sessionTemplate, never()).selectOne(eq("Student.noCount-count"), anyMap());
+		assertEquals(2, response.getNumRowsReturned());
+		assertNotNull(response.getPagination());
+		assertFalse(response.getPagination().getCountQueryExecuted());
+		assertFalse(response.getPagination().getTotalCountAvailable());
+		assertTrue(response.getPagination().getNextPageAvailable());
+		assertEquals("limit 3 offset 0", capturedFilters(sessionTemplate, "Student.noCount").get("pagination"));
+	}
+
+	@Test
+	void jsonQueryMetadataWithoutOverrideUsesGlobalCountFlag() throws IOException {
+		QueryDefinitions queryDefinitions = queryDefinitionsWithCountOverrides();
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectList(eq("Student.inheritCount"), anyMap())).thenReturn(rows(2));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryDefinitions, sessionTemplate, false);
+		SearchResponse response = service.search(searchRequest("students-inherit-count", 1, 2));
+
+		verify(sessionTemplate, never()).selectOne(eq("Student.inheritCount-count"), anyMap());
+		assertNotNull(response.getPagination());
+		assertFalse(response.getPagination().getNextPageAvailable());
+		assertEquals("limit 3 offset 0", capturedFilters(sessionTemplate, "Student.inheritCount").get("pagination"));
 	}
 
 	@Test
@@ -184,6 +277,12 @@ class NamedQueryServiceSpringMybatisImplTest {
 		return searchRequest;
 	}
 
+	private SearchRequest<Map<String, Object>> searchRequest(String queryName, int pageNum, int pageSize) {
+		SearchRequest<Map<String, Object>> searchRequest = searchRequest(pageNum, pageSize);
+		searchRequest.setQueryName(queryName);
+		return searchRequest;
+	}
+
 	private List<Object> rows(int count) {
 		List<Object> rows = new ArrayList<>();
 		for (int i = 1; i <= count; i++) {
@@ -194,9 +293,20 @@ class NamedQueryServiceSpringMybatisImplTest {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Map<String, Object> capturedFilters(SqlSessionTemplate sessionTemplate) {
+		return capturedFilters(sessionTemplate, "Student.getAll");
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Map<String, Object> capturedFilters(SqlSessionTemplate sessionTemplate, String queryId) {
 		ArgumentCaptor<Map> filtersCaptor = ArgumentCaptor.forClass(Map.class);
-		verify(sessionTemplate).selectList(eq("Student.getAll"), filtersCaptor.capture());
+		verify(sessionTemplate).selectList(eq(queryId), filtersCaptor.capture());
 		return filtersCaptor.getValue();
+	}
+
+	private QueryDefinitions queryDefinitionsWithCountOverrides() throws IOException {
+		return new QueryDefinitions(new ClassPathResource[] {
+				new ClassPathResource("org/chenile/samples/query/service/mapper/count-query-overrides.json")
+		});
 	}
 
 	private static class TestQueryExecutionProvider extends MybatisQueryExecutionProvider {

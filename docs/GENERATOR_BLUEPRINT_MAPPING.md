@@ -112,6 +112,7 @@ That gives the generated model module the shared workflow types such as:
 The generated service POM depends on:
 
 - `workflow-service`
+- optionally `workflow-mcp`, when the generated service exposes workflow MCP metadata
 - `workflow-info`
 - optionally `cucumber-workflow-utils`
 - the Maven plugin `stm-generate-puml`

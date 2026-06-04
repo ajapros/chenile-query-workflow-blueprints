@@ -31,6 +31,11 @@ It is a multi-module Maven repository. The top-level parent POM aggregates reusa
   Generic implementation for workflow-enabled entities using Chenile STM.
   It handles create, process, process-by-id, retrieve, allowed-action lookup, action resolution, activity helpers, and post-save hooks.
 
+- `workflow-mcp`
+  Optional MCP bridge for workflow services.
+  It depends on `workflow-service` and `chenile-mcp` and provides MCP polymorph metadata helpers such as `ProcessIdPolymorph`.
+  Applications that do not expose workflow MCP metadata should depend only on `workflow-service`.
+
 - `workflow-info`
   Chenile service layer for workflow introspection.
   It provides:
@@ -67,9 +72,10 @@ The dependency flow is intentionally layered:
 3. `workflow-service` depends on `workflow-api`.
 4. `chenile-query-service` depends on `query-api` and `workflow-api`.
 5. `chenile-query-controller` depends on `chenile-query-service`.
-6. `workflow-utils` depends on `workflow-service`.
-7. `workflow-info` depends on `workflow-api` and `workflow-utils`.
-8. `stm-generate-puml` depends on `workflow-utils`.
+6. `workflow-mcp` depends on `workflow-service` and `chenile-mcp`.
+7. `workflow-utils` depends on `workflow-service`.
+8. `workflow-info` depends on `workflow-api` and `workflow-utils`.
+9. `stm-generate-puml` depends on `workflow-utils`.
 
 This gives the repository a clean split between:
 

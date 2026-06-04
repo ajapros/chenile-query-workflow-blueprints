@@ -39,6 +39,7 @@ public class QueryMetadata extends BaseEntity {
     private boolean toDoList = false;
     private boolean flexiblePropnames = false;
     private boolean paginated = false;
+    private Boolean countQueryEnabled;
     private String[] acls = {};
     private Map<String, ColumnMetadata> columnMetadata = null;
     private boolean sortable;
@@ -99,6 +100,14 @@ public class QueryMetadata extends BaseEntity {
 
     public void setPaginated(boolean paginated) {
         this.paginated = paginated;
+    }
+
+    public Boolean getCountQueryEnabled() {
+        return countQueryEnabled;
+    }
+
+    public void setCountQueryEnabled(Boolean countQueryEnabled) {
+        this.countQueryEnabled = countQueryEnabled;
     }
 
     public String[] getAcls() {

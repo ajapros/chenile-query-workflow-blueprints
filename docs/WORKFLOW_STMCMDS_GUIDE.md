@@ -205,6 +205,8 @@ Different events can require different payload types.
 `ProcessIdPolymorph` uses `StmBodyTypeSelector` to enumerate those variants and publish them as polymorphic operation variants for Chenile MCP metadata.
 
 That is mainly useful for tools, introspection, and generated contracts.
+It lives in the optional `workflow-mcp` module so the base `workflow-service` runtime does not force a `chenile-mcp` dependency.
+Applications that need MCP metadata for workflow services should add `workflow-mcp` along with `workflow-service`.
 
 ## Concrete naming examples
 

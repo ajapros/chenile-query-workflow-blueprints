@@ -74,8 +74,9 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 
 	protected SearchResponse doSearch(EnhancedSearchRequest searchRequest,SearchResponse searchResponse,QueryMetadata queryMetadata) {
 		// see if there is a count query to process first
+		boolean countQueryEnabled = isCountQueryEnabled(queryMetadata);
 		if (queryMetadata.isPaginated()) {
-			if (paginationProperties.isCountQueryEnabled()) {
+			if (countQueryEnabled) {
 				processCountQuery(searchRequest.enhancedFilters,searchResponse,queryMetadata);
 			} else {
 				constructPagination(searchRequest.enhancedFilters, getStartRow(searchResponse),
@@ -89,7 +90,7 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 		}catch(Exception e){
 			e.printStackTrace();
 		}
-		if (queryMetadata.isPaginated() && !paginationProperties.isCountQueryEnabled()) {
+		if (queryMetadata.isPaginated() && !countQueryEnabled) {
 			boolean nextPageAvailable = list != null && list.size() > searchResponse.getNumRowsInPage();
 			setSlicePaginationInfo(searchResponse, nextPageAvailable);
 			if (nextPageAvailable) {
@@ -115,7 +116,13 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 		}
 		return searchResponse;
 	}
-		
+
+	private boolean isCountQueryEnabled(QueryMetadata queryMetadata) {
+		return queryMetadata.getCountQueryEnabled() == null
+				? paginationProperties.isCountQueryEnabled()
+				: queryMetadata.getCountQueryEnabled();
+	}
+			
 	@SuppressWarnings("unchecked")
 	private void populateDropDownValues(ColumnMetadata cmd, Map<String, Object> filters) {
 		if (cmd.getDropDownValues() != null) {

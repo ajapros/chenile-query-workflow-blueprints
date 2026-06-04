@@ -20,6 +20,20 @@ query:
 When disabled, query-service fetches `pageSize + 1` rows, trims the extra row, and returns
 `pagination.nextPageAvailable` instead of exact totals.
 
+Individual query definitions can override the global setting:
+
+```json
+{
+  "id": "Student.getAll",
+  "name": "students",
+  "paginated": true,
+  "countQueryEnabled": false
+}
+```
+
+When `countQueryEnabled` is absent, the query follows `query.pagination.countQueryEnabled`. Set it to
+`true` to force count execution for a specific query, or `false` to force no-count pagination for that query.
+
 ## Query Providers
 
 The default query provider is `mybatis`. For JDBC databases whose SQL is compatible with the configured MyBatis

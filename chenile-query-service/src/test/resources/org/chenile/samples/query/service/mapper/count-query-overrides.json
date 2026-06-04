@@ -1,0 +1,28 @@
+[
+	{
+		"id": "Student.forceCount",
+		"name": "students-force-count",
+		"description": "Paginated query that always runs the count query",
+		"columnMetadata": {},
+		"paginated": true,
+		"countQueryEnabled": true,
+		"sortable": false
+	},
+	{
+		"id": "Student.noCount",
+		"name": "students-no-count",
+		"description": "Paginated query that suppresses the count query",
+		"columnMetadata": {},
+		"paginated": true,
+		"countQueryEnabled": false,
+		"sortable": false
+	},
+	{
+		"id": "Student.inheritCount",
+		"name": "students-inherit-count",
+		"description": "Paginated query that follows the global count query setting",
+		"columnMetadata": {},
+		"paginated": true,
+		"sortable": false
+	}
+]
