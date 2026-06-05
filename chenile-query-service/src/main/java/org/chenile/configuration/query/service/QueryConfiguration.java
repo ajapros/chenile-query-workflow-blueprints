@@ -31,7 +31,6 @@ import org.chenile.query.service.impl.MybatisQueryExecutionProvider;
 import org.chenile.query.service.impl.NamedQueryServiceSpringMybatisImpl;
 import org.chenile.query.service.impl.QueryExecutionProvider;
 import org.chenile.query.service.impl.QueryDefinitions;
-import org.chenile.query.service.impl.QueryPolymorph;
 import org.chenile.query.service.interceptor.QueryUserFilterInterceptor;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
@@ -50,11 +49,6 @@ public class QueryConfiguration {
 		@Bean("queryDefinitions") QueryDefinitions queryDefinitions() throws IOException{
 			return new QueryDefinitions(queryDefinitionFiles);
 		}
-
-	@Bean("queryPolymorph")
-	QueryPolymorph queryPolymorph(@Autowired @Qualifier("queryDefinitions") QueryDefinitions queryDefinitions) {
-		return new QueryPolymorph(queryDefinitions);
-	}
 
     @Bean
     @ConfigurationProperties(prefix = "query")

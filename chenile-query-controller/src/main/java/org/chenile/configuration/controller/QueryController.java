@@ -5,11 +5,9 @@ import java.util.Map;
 import org.chenile.base.response.GenericResponse;
 import org.chenile.http.annotation.ChenileController;
 import org.chenile.http.handler.ControllerSupport;
-import org.chenile.mcp.model.ChenileMCP;
-import org.chenile.mcp.model.ChenilePolymorph;
 import org.chenile.query.model.SearchRequest;
 import org.chenile.query.model.SearchResponse;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,11 +22,10 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 @RestController
 @ChenileController(value = "chenileMybatisQuery", serviceName = "searchService")
+@ConditionalOnMissingBean(name = "queryMCPController")
 public class QueryController extends ControllerSupport{
 	@PostMapping("/q/{queryName}")
 	// @InterceptedBy("securityInterceptor")
-	@ChenileMCP(name = "querySearch", description = "Execute a named Chenile query")
-	@ChenilePolymorph("queryPolymorph")
 	 public ResponseEntity<GenericResponse<SearchResponse>> search(
 			 HttpServletRequest request, 
 			 @PathVariable String queryName,

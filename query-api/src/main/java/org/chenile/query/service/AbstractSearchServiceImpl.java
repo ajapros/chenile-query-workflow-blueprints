@@ -284,18 +284,18 @@ public abstract class AbstractSearchServiceImpl implements SearchService<Map<Str
 			return null;
 		State state = extractStateFromObject(obj, stateColumn, flowColumn);
 		if (state == null) {
-			logger.warn("State for object of type {} is null.", workflowName);
+			logger.debug("State for object of type {} is null.", workflowName);
 			return null;
 		}
 		List<Map<String,String>> ret = new ArrayList<>();
 		STMActionsInfoProvider provider = WorkflowRegistry.getSTMActionInfoProvider(workflowName);
 		if(provider == null) {
-			logger.warn("provider for workflow {} is null.", workflowName);
+			logger.debug("provider for workflow {} is null.", workflowName);
 			return null;
 		}
 		List<Map<String, String>> listOfMaps = provider.getAllowedActionsAndMetadata(state);
 		if (listOfMaps == null){
-			logger.warn("return value from state info provider for workflow {} is null.", workflowName);
+			logger.debug("return value from state info provider for workflow {} is null.", workflowName);
 			return null;
 		}
 		/*for (Map<String,String> map: listOfMaps){

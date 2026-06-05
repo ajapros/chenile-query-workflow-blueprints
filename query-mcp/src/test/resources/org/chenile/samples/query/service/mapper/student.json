@@ -1,0 +1,68 @@
+[
+	{
+
+        "id": "Student.getAll",
+        "name": "students",
+		"description": "Get all details about students",
+        "columnMetadata": {
+			"id" : {
+				"name": "id",
+				"filterable": true,
+				"columnType": "Text"
+			},
+			"name" : {
+				"name": "name",
+				"columnType" : "Text",
+				"likeQuery": true,
+				"filterable": true
+			},
+			"branch": {
+				"name": "branch",
+				"filterable": true,
+				"columnType": "Text",
+				"containsQuery": true,
+				"sortable": true
+			},
+			"phone": {
+				"name" : "phone",
+				"filterable": true,
+				"columnType": "Text"
+			},
+			"percentage" : {
+				"name": "name",
+				"columnType" : "Text",
+				"filterable": true
+			},
+			"email": {
+				"name": "email",
+				"columnType" : "Text",
+				"likeQuery": true,
+				"filterable": true
+			}
+		},
+		"acls": ["QUERY_READ", "QUERY_EXPORT"],
+		"flexiblePropnames": false,
+        "paginated" : true,
+        "sortable" : true
+    },
+	{
+		"id": "AuthUser.reportees",
+		"name": "AuthUser.reportees",
+		"description": "Get All Authorized user information",
+		"columnMetadata": {
+			"userId": {
+				"name": "userId",
+				"filterable": true,
+				"columnType": "Text"
+			},
+			"authId": {
+				"name": "authId",
+				"filterable": false,
+				"columnType": "Text"
+			}
+		},
+		"paginated": false,
+		"sortable": false
+    }
+
+]
