@@ -24,6 +24,8 @@ public class CLI implements Runnable {
         private boolean visualizeTestCase;
         @Option(names = {"-r", "--render-tests-as-state"},paramLabel = "render-tests-as-state", description = "Renders state diagrams for all generated test cases")
         private boolean renderTestsAsStateDiagram = false;
+        @Option(names = {"-m", "--mermaid"},paramLabel = "mermaid-state-diagram", description = "Generate a State diagram compatible with Mermaid JS")
+        private boolean renderMermaidStateDiagram = false;
     }
     @Parameters(index = "0..*", paramLabel = "<XML File names>", description = "The XML filename to read. Must be a valid states XML. Component names in file will be ignored.")
     private File[] xmlFileNames;
@@ -46,7 +48,9 @@ public class CLI implements Runnable {
         try {
             if (exclusive.umlStateDiagram) {
                 cliHelper.renderStateDiagram(params,outputFile);
-            } else if (exclusive.stateForAllowedActions != null && !exclusive.stateForAllowedActions.isEmpty()) {
+            } else if (exclusive.renderMermaidStateDiagram){
+                cliHelper.renderMermaidStateDiagram(params,outputFile);
+            }else if (exclusive.stateForAllowedActions != null && !exclusive.stateForAllowedActions.isEmpty()) {
                 cliHelper.allowedActions(params,outputFile);
             } else if (exclusive.toJson) {
                 cliHelper.toJson(params,outputFile);
