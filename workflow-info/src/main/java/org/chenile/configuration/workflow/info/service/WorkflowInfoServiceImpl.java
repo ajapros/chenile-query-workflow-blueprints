@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class WorkflowInfoServiceImpl implements WorkflowInfoService {
-    private static final int VALIDATION_ERROR = 7001;
+    private static final String VALIDATION_ERROR = "7001";
     private final CLIHelper cliHelper;
 
     public WorkflowInfoServiceImpl(CLIHelper cliHelper) {

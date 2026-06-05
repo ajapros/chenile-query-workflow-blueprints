@@ -30,7 +30,7 @@ public abstract class SecondSTMTransitionAction<StateEntityType extends StateEnt
 
     protected void registerAction(String eventId, int index){
         if (index == 0)
-            throw new ConfigurationException(5002,"Index 0 is not allowed");
+            throw new ConfigurationException("5002","Index 0 is not allowed");
         multipleCommandsRegistry.addCommand(eventId,index,this);
     }
 

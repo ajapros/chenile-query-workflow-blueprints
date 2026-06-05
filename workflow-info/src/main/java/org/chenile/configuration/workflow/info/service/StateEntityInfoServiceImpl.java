@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class StateEntityInfoServiceImpl implements StateEntityInfoService {
-    private static final int VALIDATION_ERROR = 7002;
+    private static final String VALIDATION_ERROR = "7002";
     private final STMFlowStoreInfoHelper infoHelper;
 
     public StateEntityInfoServiceImpl(STMFlowStoreImpl stmFlowStore, STMActionsInfoProvider actionsInfoProvider) {
