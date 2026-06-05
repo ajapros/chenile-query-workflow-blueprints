@@ -35,6 +35,10 @@ public class CLIHelper {
     public void renderStateDiagram(CLIParams params,String outputFile) throws Exception {
         out(renderStateDiagram(params),outputFile);
     }
+
+    public void renderMermaidStateDiagram(CLIParams params,String outputFile) throws Exception {
+        out(renderMermaidStateDiagram(params),outputFile);
+    }
     public void renderTestCases(CLIParams params,String outputFile) throws Exception {
         out(renderTestCases(params),outputFile);
     }
@@ -81,6 +85,11 @@ public class CLIHelper {
     public String renderStateDiagram(CLIParams params) throws Exception {
         process(params);
         return this.storeInfoHelper.renderStateDiagram(resolveStylingPropertiesText(params));
+    }
+
+    public String renderMermaidStateDiagram(CLIParams params) throws Exception {
+        process(params);
+        return this.storeInfoHelper.renderMermaidStateDiagram(resolveStylingPropertiesText(params));
     }
 
     public String renderTestCases(CLIParams params) throws Exception {

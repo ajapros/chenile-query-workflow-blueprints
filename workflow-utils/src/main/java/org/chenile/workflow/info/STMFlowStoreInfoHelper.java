@@ -3,6 +3,7 @@ package org.chenile.workflow.info;
 import org.chenile.stm.State;
 import org.chenile.stm.impl.STMActionsInfoProvider;
 import org.chenile.stm.impl.STMFlowStoreImpl;
+import org.chenile.workflow.puml.STMMermaidGenerator;
 import org.chenile.workflow.puml.STMPlantUmlSDGenerator;
 import org.chenile.workflow.testcases.STMTestCaseGenerator;
 
@@ -16,12 +17,14 @@ public class STMFlowStoreInfoHelper {
     private final STMActionsInfoProvider infoProvider;
     private final STMPlantUmlSDGenerator generator;
     private final STMTestCaseGenerator stmTestCaseGenerator;
+    private final STMMermaidGenerator mermaidGenerator;
 
     public STMFlowStoreInfoHelper(STMFlowStoreImpl stmFlowStore, STMActionsInfoProvider infoProvider) {
         this.stmFlowStore = stmFlowStore;
         this.infoProvider = infoProvider;
         this.generator = new STMPlantUmlSDGenerator(stmFlowStore);
         this.stmTestCaseGenerator = new STMTestCaseGenerator(stmFlowStore);
+        this.mermaidGenerator = new STMMermaidGenerator(stmFlowStore);
     }
 
     public List<String> allowedActions(String stateId, String flowId) {
@@ -33,6 +36,13 @@ public class STMFlowStoreInfoHelper {
             loadStylingProperties(stylingPropertiesText);
         }
         return this.generator.toStateDiagram();
+    }
+
+    public String renderMermaidStateDiagram(String stylingPropertiesText) throws Exception {
+        if (stylingPropertiesText != null && !stylingPropertiesText.isEmpty()) {
+            loadStylingProperties(stylingPropertiesText);
+        }
+        return this.mermaidGenerator.toStateDiagram();
     }
 
     public Map<String,Object> toMap() {
