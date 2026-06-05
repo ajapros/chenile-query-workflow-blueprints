@@ -22,7 +22,6 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 @RestController
 @ChenileController(value = "chenileMybatisQuery", serviceName = "searchService")
-@ConditionalOnMissingBean(name = "queryMCPController")
 public class QueryController extends ControllerSupport{
 	@PostMapping("/q/{queryName}")
 	// @InterceptedBy("securityInterceptor")

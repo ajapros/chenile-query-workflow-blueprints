@@ -3,6 +3,7 @@ This contains some blue prints for workflow and query. We can use these to quick
 that conform to these blueprints. Also see chenile-gen for generators of code that comply to these blueprints
 
 See [docs/REPO_OVERVIEW.md](docs/REPO_OVERVIEW.md) for a module map, dependency direction, request flow, and contributor reading order.
+Agents should start with [docs/AGENT_TRAVERSAL_GUIDE.md](docs/AGENT_TRAVERSAL_GUIDE.md) to avoid broad searches across the framework and client layers.
 See the Chenile docs site for [query migration](https://chenile.org/query-framework-migration-guide.html) and
 [query provider extension](https://chenile.org/query-provider-extension.html) guidance.
 

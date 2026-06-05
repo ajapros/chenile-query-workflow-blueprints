@@ -113,7 +113,7 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 	public StateEntityServiceResponse<T> processById(String id,  String event, Object payload) {
 		T entity = entityStore.retrieve(id);
 		if (entity == null) {
-			throw new NotFoundException(6003, new Object[] {id});
+			throw new NotFoundException("6003", new Object[] {id});
 		}
 		T ret = processEntity(entity, event,payload);
 		return makeStateEntityResponse(ret);
@@ -129,7 +129,7 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 	public List<Map<String, String>> getAllowedActionsAndMetadata(String id) {
 		T entity = entityStore.retrieve(id);
 		if (entity == null) {
-			throw new NotFoundException(6003, new Object[] {id});
+			throw new NotFoundException("6003", new Object[] {id});
 		}
 		return getAllowedActionsAndMetadata(entity.getCurrentState());
 	}
@@ -146,7 +146,7 @@ public class StateEntityServiceImpl<T extends StateEntity> implements StateEntit
 	public StateEntityServiceResponse<T> retrieve(String id) {
 		T entity = entityStore.retrieve(id);
 		if (entity == null) {
-			throw new NotFoundException(6003, new Object[] {id});
+			throw new NotFoundException("6003", new Object[] {id});
 		}
 		return makeStateEntityResponse(entity);
 	}
