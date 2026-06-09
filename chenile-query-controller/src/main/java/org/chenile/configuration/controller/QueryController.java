@@ -17,8 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * This sets up a query service. This can be used by pointing this service to
- * a database that can be configured in  application.yml.
+ * This sets up a query service automatically. Developers can use this optionally instead of
+ * writing the controller themselves. It is recommended to write your own controllers if
+ * you want to use additional annotations such as chenile security etc.
  */
 @RestController
 @ChenileController(value = "chenileMybatisQuery", serviceName = "searchService")

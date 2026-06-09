@@ -23,8 +23,8 @@ import java.util.Map;
  * controller.
  */
 @RestController
-@ChenileController(value = "chenileMybatisQuery", serviceName = "searchService")
-@ConditionalOnMissingBean(name = "queryMCPController")
+@ChenileController(value = "chenileMcpMybatisQuery", serviceName = "searchService")
+// @ConditionalOnMissingBean(name = "queryMCPController")
 public class QueryMCPController extends ControllerSupport {
 
     @PostMapping("/mcp/q/{queryName}")
