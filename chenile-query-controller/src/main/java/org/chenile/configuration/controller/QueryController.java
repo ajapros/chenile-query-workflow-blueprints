@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * you want to use additional annotations such as chenile security etc.
  */
 @RestController
-@ChenileController(value = "chenileMybatisQuery", serviceName = "searchService")
+@ChenileController(value = "chenileMybatisQuery", serviceName = "searchService", serviceModule = "query")
 public class QueryController extends ControllerSupport{
 	@PostMapping("/q/{queryName}")
 	// @InterceptedBy("securityInterceptor")
