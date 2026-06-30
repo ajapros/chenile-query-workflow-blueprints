@@ -19,6 +19,7 @@ public class SearchRequest<FilterType> {
 	 * required by the underlying query template.
 	 */
 	Map<String, Object> customVariables;
+	boolean countOnly = false;
 
 	public boolean isToDoList() {
 		return toDoList;
@@ -190,5 +191,13 @@ public class SearchRequest<FilterType> {
 
 	public void setCustomVariables(Map<String, Object> customVariables) {
 		this.customVariables = customVariables;
+	}
+
+	public boolean isCountOnly() {
+		return countOnly;
+	}
+
+	public void setCountOnly(boolean countOnly) {
+		this.countOnly = countOnly;
 	}
 }

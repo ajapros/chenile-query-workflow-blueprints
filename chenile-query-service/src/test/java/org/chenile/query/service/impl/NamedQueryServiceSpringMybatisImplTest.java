@@ -92,6 +92,51 @@ class NamedQueryServiceSpringMybatisImplTest {
 	}
 
 	@Test
+	void countOnlyRunsCountQueryAndSkipsListQuery() {
+		QueryStore queryStore = mock(QueryStore.class);
+		when(queryStore.retrieve("students")).thenReturn(queryMetadata(true));
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("Student.getAll-count"), anyMap())).thenReturn(25);
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryStore, sessionTemplate, true);
+		SearchRequest<Map<String, Object>> request = searchRequest(2, 10);
+		request.setCountOnly(true);
+		SearchResponse response = service.search(request);
+
+		verify(sessionTemplate).selectOne(eq("Student.getAll-count"), anyMap());
+		verify(sessionTemplate, never()).selectList(eq("Student.getAll"), anyMap());
+		assertEquals(0, response.getNumRowsReturned());
+		assertTrue(response.getList().isEmpty());
+		assertEquals(2, response.getCurrentPage());
+		assertEquals(25, response.getMaxRows());
+		assertEquals(4, response.getMaxPages());
+		assertNull(response.getPagination());
+	}
+
+	@Test
+	void countOnlyForcesCountQueryWhenCountIsDisabled() {
+		QueryStore queryStore = mock(QueryStore.class);
+		QueryMetadata queryMetadata = queryMetadata(true);
+		queryMetadata.setCountQueryEnabled(false);
+		when(queryStore.retrieve("students")).thenReturn(queryMetadata);
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("Student.getAll-count"), anyMap())).thenReturn(5);
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryStore, sessionTemplate, false);
+		SearchRequest<Map<String, Object>> request = searchRequest(1, 2);
+		request.setCountOnly(true);
+		SearchResponse response = service.search(request);
+
+		verify(sessionTemplate).selectOne(eq("Student.getAll-count"), anyMap());
+		verify(sessionTemplate, never()).selectList(eq("Student.getAll"), anyMap());
+		assertEquals(0, response.getNumRowsReturned());
+		assertTrue(response.getList().isEmpty());
+		assertEquals(5, response.getMaxRows());
+		assertEquals(4, response.getMaxPages());
+		assertNull(response.getPagination());
+	}
+
+	@Test
 	void queryMetadataCanEnableCountWhenGlobalCountIsDisabled() {
 		QueryStore queryStore = mock(QueryStore.class);
 		QueryMetadata queryMetadata = queryMetadata(true);

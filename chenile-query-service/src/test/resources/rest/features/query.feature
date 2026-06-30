@@ -52,6 +52,27 @@ And the REST response key "currentPage" is "1"
 And the REST response key "maxRows" is "30"
 And the REST response key "maxPages" is "2"
 
+Scenario: Count-only request returns exact total without rows
+When I construct a REST request with header "x-chenile-tenant-id" and value "tenant1"
+When I POST a REST request to URL "/q/students" with payload
+"""
+{
+	"countOnly": true,
+	"sortCriteria" :[
+		{"name":"name","ascendingOrder": true}
+	],
+	"pageNum": 1,
+	"numRowsInPage": 29
+}
+"""
+Then the http status code is 200
+And the top level code is 200
+And success is true
+And the REST response key "numRowsReturned" is "0"
+And the REST response key "currentPage" is "1"
+And the REST response key "maxRows" is "30"
+And the REST response key "maxPages" is "2"
+
 Scenario Outline: Test Likes query
 When I construct a REST request with header "x-chenile-tenant-id" and value "<tenantId>"
 When I POST a REST request to URL "/q/students" with payload

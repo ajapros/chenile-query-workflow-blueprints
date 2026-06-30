@@ -75,6 +75,12 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 	protected SearchResponse doSearch(EnhancedSearchRequest searchRequest,SearchResponse searchResponse,QueryMetadata queryMetadata) {
 		// see if there is a count query to process first
 		boolean countQueryEnabled = isCountQueryEnabled(queryMetadata);
+		if (searchRequest.originalSearchRequest.isCountOnly()) {
+			processCountQuery(searchRequest.enhancedFilters, searchResponse, queryMetadata);
+			searchResponse.setList(new ArrayList<ResponseRow>());
+			searchResponse.setNumRowsReturned(0);
+			return searchResponse;
+		}
 		if (queryMetadata.isPaginated()) {
 			if (countQueryEnabled) {
 				processCountQuery(searchRequest.enhancedFilters,searchResponse,queryMetadata);
