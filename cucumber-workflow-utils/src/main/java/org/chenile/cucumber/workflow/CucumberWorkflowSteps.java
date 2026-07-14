@@ -95,8 +95,8 @@ public class CucumberWorkflowSteps {
         flowId = VariableHelper.substituteVariables(flowId);
         configProvider.setProperties("""
 				# Add state to flow
-				%sstate.add.%s.in=%s
-				""".formatted(prefix,stateId,flowId));
+				%s%s.state.add.%s=
+				""".formatted(prefix,flowId,stateId));
     }
 
     @Given("that a new transition {string} is added from state {string} to state {string} in flow {string}")
