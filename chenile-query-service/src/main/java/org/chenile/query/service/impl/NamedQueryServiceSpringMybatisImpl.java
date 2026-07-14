@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import org.chenile.base.exception.ServerException;
 import org.chenile.configuration.query.service.QueryPaginationProperties;
+import org.chenile.configuration.query.service.QueryTenantResolver;
 import org.chenile.query.service.error.ErrorCodes;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 	Logger logger = LoggerFactory.getLogger(NamedQueryServiceSpringMybatisImpl.class);
 	private QueryPaginationProperties paginationProperties = new QueryPaginationProperties();
 	private QueryExecutionProvider queryExecutionProvider;
+	private QueryTenantResolver queryTenantResolver;
 
 	public NamedQueryServiceSpringMybatisImpl(QueryStore queryStore) {
 		super(queryStore);
@@ -59,6 +61,18 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 
 	public void setQueryExecutionProvider(QueryExecutionProvider queryExecutionProvider) {
 		this.queryExecutionProvider = queryExecutionProvider;
+	}
+
+	public void setQueryTenantResolver(QueryTenantResolver queryTenantResolver) {
+		this.queryTenantResolver = queryTenantResolver;
+	}
+
+	@Override
+	protected QueryMetadata retrieveQueryMetadata(String queryName) {
+		if (queryTenantResolver == null) {
+			return super.retrieveQueryMetadata(queryName);
+		}
+		return queryStore.retrieve(queryName, queryTenantResolver.resolveTenant());
 	}
 
 	@Override
@@ -89,13 +103,8 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 						searchResponse.getNumRowsInPage() + 1);
 			}
 		}
-		List<Object> list = null;
-		try {
-			list = executeQuery(queryMetadata.getId(),
-					searchRequest.enhancedFilters);
-		}catch(Exception e){
-			e.printStackTrace();
-		}
+		List<Object> list = executeQuery(queryMetadata.getId(),
+				searchRequest.enhancedFilters);
 		if (queryMetadata.isPaginated() && !countQueryEnabled) {
 			boolean nextPageAvailable = list != null && list.size() > searchResponse.getNumRowsInPage();
 			setSlicePaginationInfo(searchResponse, nextPageAvailable);
@@ -148,6 +157,8 @@ public class NamedQueryServiceSpringMybatisImpl extends AbstractSearchServiceImp
 		Object o = null;
 		try {
 			o = queryExecutionProvider().executeCount(qName, filters);
+		}catch(RuntimeException e) {
+			throw e;
 		}catch(Exception e){
 			throw new ServerException(ErrorCodes.CANNOT_EXECUTE_COUNT_QUERY.getSubError(),
 					new Object[]{qName,filters,e.getMessage()},e);

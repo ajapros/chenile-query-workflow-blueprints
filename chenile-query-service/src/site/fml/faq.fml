@@ -14,5 +14,41 @@
 				</source>
       </answer>
     </faq>
+    <faq id="tenant-query-overrides">
+      <question>How do I override a query for a specific tenant or client?</question>
+      <answer>
+        <p>
+          Keep the externally visible query name stable and add a tenant-specific query definition with the same
+          <code>name</code> and a <code>tenantId</code>. The framework resolves the effective tenant from
+          <code>x-chenile-tenant-id</code> or <code>query.defaultTenantId</code>, tries the tenant-specific definition
+          first, and falls back to the base definition when no tenant override exists.
+        </p>
+        <source><![CDATA[
+[
+  {
+    "id": "Student.getAll",
+    "name": "students",
+    "columnMetadata": {},
+    "paginated": true,
+    "sortable": true
+  },
+  {
+    "tenantId": "tenant1",
+    "id": "tenant1.Student.getAll",
+    "name": "students",
+    "columnMetadata": {},
+    "paginated": true,
+    "sortable": true
+  }
+]
+        ]]></source>
+        <p>
+          The tenant mapper should use the matching MyBatis namespace and statement ids. For the example above,
+          configure namespace <code>tenant1.Student</code> with select ids <code>getAll</code> and
+          <code>getAll-count</code>. Products continue calling <code>/q/students</code>; they do not call a
+          tenant-prefixed query name.
+        </p>
+      </answer>
+    </faq>
   </part>
 </faqs>

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.chenile.base.exception.BadRequestException;
 import org.chenile.base.exception.ServerException;
 import org.chenile.query.model.QueryMetadata;
 import org.chenile.query.model.SortCriterion;
@@ -66,7 +67,13 @@ public class MybatisQueryExecutionProvider implements QueryExecutionProvider {
 	public Object executeCount(String queryName, Map<String, Object> filters) {
 		try {
 			return sessionTemplate.selectOne(queryName, filters);
+		} catch(BadRequestException e) {
+			throw e;
 		} catch(Exception e) {
+			BadRequestException badRequestException = findBadRequestException(e);
+			if (badRequestException != null) {
+				throw badRequestException;
+			}
 			throw new ServerException(ErrorCodes.CANNOT_EXECUTE_COUNT_QUERY.getSubError(),
 					new Object[]{queryName, filters, e.getMessage()}, e);
 		}
@@ -76,10 +83,26 @@ public class MybatisQueryExecutionProvider implements QueryExecutionProvider {
 	public List<Object> executeQuery(String queryName, Map<String, Object> filters) {
 		try {
 			return sessionTemplate.selectList(queryName, filters);
+		} catch(BadRequestException e) {
+			throw e;
 		} catch(Exception e) {
+			BadRequestException badRequestException = findBadRequestException(e);
+			if (badRequestException != null) {
+				throw badRequestException;
+			}
 			logger.error("Cannot execute query", e);
 			throw new ServerException(ErrorCodes.CANNOT_EXECUTE_QUERY.getSubError(),
 					new Object[]{queryName, filters, e.getMessage()}, e);
 		}
+	}
+
+	private BadRequestException findBadRequestException(Throwable throwable) {
+		while (throwable != null) {
+			if (throwable instanceof BadRequestException badRequestException) {
+				return badRequestException;
+			}
+			throwable = throwable.getCause();
+		}
+		return null;
 	}
 }

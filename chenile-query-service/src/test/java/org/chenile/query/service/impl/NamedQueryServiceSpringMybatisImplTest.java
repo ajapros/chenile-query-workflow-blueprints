@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -18,7 +19,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.chenile.base.exception.BadRequestException;
 import org.chenile.configuration.query.service.QueryPaginationProperties;
+import org.chenile.configuration.query.service.QueryDatasourcesProperties;
+import org.chenile.configuration.query.service.QueryTenantResolver;
+import org.chenile.core.context.ContextContainer;
 import org.chenile.query.model.QueryMetadata;
 import org.chenile.query.model.SearchRequest;
 import org.chenile.query.model.SearchResponse;
@@ -228,6 +233,53 @@ class NamedQueryServiceSpringMybatisImplTest {
 	}
 
 	@Test
+	void tenantSpecificMetadataOverridesBaseMetadataForSameExternalQueryName() throws IOException {
+		QueryDefinitions queryDefinitions = queryDefinitionsWithTenantOverrides();
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("tenant1.Student.getAll-count"), anyMap())).thenReturn(3);
+		when(sessionTemplate.selectList(eq("tenant1.Student.getAll"), anyMap())).thenReturn(rows(2));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryDefinitions, sessionTemplate, true, "tenant1");
+		SearchResponse response = service.search(searchRequest("tenant-overridden", 1, 2));
+
+		verify(sessionTemplate).selectOne(eq("tenant1.Student.getAll-count"), anyMap());
+		verify(sessionTemplate).selectList(eq("tenant1.Student.getAll"), anyMap());
+		assertEquals(2, response.getNumRowsReturned());
+	}
+
+	@Test
+	void tenantSpecificCountOnlyUsesResolvedTenantCountMapper() throws IOException {
+		QueryDefinitions queryDefinitions = queryDefinitionsWithTenantOverrides();
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("tenant1.Student.getAll-count"), anyMap())).thenReturn(10);
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryDefinitions, sessionTemplate, true, "tenant1");
+		SearchRequest<Map<String, Object>> request = searchRequest("tenant-overridden", 1, 20);
+		request.setCountOnly(true);
+		SearchResponse response = service.search(request);
+
+		verify(sessionTemplate).selectOne(eq("tenant1.Student.getAll-count"), anyMap());
+		verify(sessionTemplate, never()).selectList(eq("tenant1.Student.getAll"), anyMap());
+		assertEquals(0, response.getNumRowsReturned());
+		assertEquals(10, response.getMaxRows());
+	}
+
+	@Test
+	void tenantSpecificMetadataFallsBackToBaseMetadataWhenOverrideIsMissing() throws IOException {
+		QueryDefinitions queryDefinitions = queryDefinitionsWithTenantOverrides();
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("Student.getAll-count"), anyMap())).thenReturn(3);
+		when(sessionTemplate.selectList(eq("Student.getAll"), anyMap())).thenReturn(rows(2));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryDefinitions, sessionTemplate, true, "tenant3");
+		SearchResponse response = service.search(searchRequest("tenant-overridden", 1, 2));
+
+		verify(sessionTemplate).selectOne(eq("Student.getAll-count"), anyMap());
+		verify(sessionTemplate).selectList(eq("Student.getAll"), anyMap());
+		assertEquals(2, response.getNumRowsReturned());
+	}
+
+	@Test
 	void noCountPaginationMarksLastPageWhenExtraRowIsMissing() {
 		QueryStore queryStore = mock(QueryStore.class);
 		when(queryStore.retrieve("students")).thenReturn(queryMetadata(true));
@@ -294,6 +346,32 @@ class NamedQueryServiceSpringMybatisImplTest {
 		assertFalse(capturedFilters(sessionTemplate).containsKey("pagination"));
 	}
 
+	@Test
+	void queryExecutionSecurityErrorsArePropagated() {
+		QueryStore queryStore = mock(QueryStore.class);
+		when(queryStore.retrieve("students")).thenReturn(queryMetadata(false));
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectList(eq("Student.getAll"), anyMap()))
+				.thenThrow(new BadRequestException("Q723", new Object[] {"x-chenile-tenant-id"}));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryStore, sessionTemplate, false);
+
+		assertThrows(BadRequestException.class, () -> service.search(searchRequest(1, 2)));
+	}
+
+	@Test
+	void countQuerySecurityErrorsArePropagated() {
+		QueryStore queryStore = mock(QueryStore.class);
+		when(queryStore.retrieve("students")).thenReturn(queryMetadata(true));
+		SqlSessionTemplate sessionTemplate = mock(SqlSessionTemplate.class);
+		when(sessionTemplate.selectOne(eq("Student.getAll-count"), anyMap()))
+				.thenThrow(new BadRequestException("Q723", new Object[] {"x-chenile-tenant-id"}));
+
+		NamedQueryServiceSpringMybatisImpl service = service(queryStore, sessionTemplate, true);
+
+		assertThrows(BadRequestException.class, () -> service.search(searchRequest(1, 2)));
+	}
+
 	private NamedQueryServiceSpringMybatisImpl service(QueryStore queryStore, SqlSessionTemplate sessionTemplate,
 			boolean countQueryEnabled) {
 		QueryPaginationProperties paginationProperties = new QueryPaginationProperties();
@@ -301,6 +379,17 @@ class NamedQueryServiceSpringMybatisImplTest {
 		NamedQueryServiceSpringMybatisImpl service = new NamedQueryServiceSpringMybatisImpl(queryStore);
 		service.setSessionTemplate(sessionTemplate);
 		service.setPaginationProperties(paginationProperties);
+		return service;
+	}
+
+	private NamedQueryServiceSpringMybatisImpl service(QueryStore queryStore, SqlSessionTemplate sessionTemplate,
+			boolean countQueryEnabled, String tenantId) {
+		NamedQueryServiceSpringMybatisImpl service = service(queryStore, sessionTemplate, countQueryEnabled);
+		QueryDatasourcesProperties properties = new QueryDatasourcesProperties();
+		properties.setDefaultTenantId("tenant1");
+		ContextContainer contextContainer = mock(ContextContainer.class);
+		when(contextContainer.getTenant()).thenReturn(tenantId);
+		service.setQueryTenantResolver(new QueryTenantResolver(properties, contextContainer));
 		return service;
 	}
 
@@ -351,6 +440,12 @@ class NamedQueryServiceSpringMybatisImplTest {
 	private QueryDefinitions queryDefinitionsWithCountOverrides() throws IOException {
 		return new QueryDefinitions(new ClassPathResource[] {
 				new ClassPathResource("org/chenile/samples/query/service/mapper/count-query-overrides.json")
+		});
+	}
+
+	private QueryDefinitions queryDefinitionsWithTenantOverrides() throws IOException {
+		return new QueryDefinitions(new ClassPathResource[] {
+				new ClassPathResource("org/chenile/samples/query/service/mapper/tenant-query-overrides.json")
 		});
 	}
 

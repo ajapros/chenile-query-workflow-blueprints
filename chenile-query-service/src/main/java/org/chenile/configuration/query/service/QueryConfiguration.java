@@ -62,6 +62,12 @@ public class QueryConfiguration {
 		return new QueryPaginationProperties();
 	}
 
+	@Bean
+	QueryTenantResolver queryTenantResolver(@Autowired QueryDatasourcesProperties properties,
+			@Autowired ContextContainer contextContainer) {
+		return new QueryTenantResolver(properties, contextContainer);
+	}
+
     @Bean("queryTargetDataSources")
 	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
     Map<String, DataSource> queryTargetDataSources(@Autowired QueryDatasourcesProperties properties) {
@@ -85,16 +91,19 @@ public class QueryConfiguration {
 	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
     DataSource queryDataSource(@Autowired @Qualifier("queryTargetDataSources") Map<String, DataSource> targetDataSources,
 							   @Autowired QueryDatasourcesProperties properties,
-							   @Autowired ContextContainer contextContainer) {
+							   @Autowired QueryTenantResolver queryTenantResolver) {
+		if (targetDataSources.isEmpty()) {
+			throw new IllegalStateException("query.datasources is empty or not configured");
+		}
+		String defaultTenantId = queryTenantResolver.getDefaultTenantId();
+		if (defaultTenantId != null && !targetDataSources.containsKey(defaultTenantId)) {
+			throw new IllegalStateException(
+					"query.defaultTenantId '" + defaultTenantId + "' is not present in query.datasources");
+		}
 		AbstractRoutingDataSource routingDataSource = new AbstractRoutingDataSource() {
 			@Override
 			protected Object determineCurrentLookupKey() {
-				String tenantId = contextContainer.getTenant();
-				if (tenantId == null) {
-					return null;
-				}
-				tenantId = tenantId.trim();
-				return tenantId.isEmpty() ? null : tenantId;
+				return queryTenantResolver.resolveTenant();
 			}
 		};
 		Map<Object, Object> target = new LinkedHashMap<>();
@@ -102,12 +111,10 @@ public class QueryConfiguration {
 			target.put(entry.getKey(), entry.getValue());
 		}
 		routingDataSource.setTargetDataSources(target);
-		String defaultTenantId = properties.getDefaultTenantId();
-		DataSource defaultDataSource = defaultTenantId == null ? null : targetDataSources.get(defaultTenantId);
-		if (defaultDataSource == null && !targetDataSources.isEmpty()) {
-			defaultDataSource = targetDataSources.values().iterator().next();
+		routingDataSource.setLenientFallback(false);
+		if (defaultTenantId != null) {
+			routingDataSource.setDefaultTargetDataSource(targetDataSources.get(defaultTenantId));
 		}
-		routingDataSource.setDefaultTargetDataSource(defaultDataSource);
 		return routingDataSource;
 	}
 
@@ -151,10 +158,12 @@ public class QueryConfiguration {
     SearchService<Map<String, Object>> searchService(@Autowired @Qualifier("queryDefinitions")
        QueryStore queryStore, @Autowired QueryPaginationProperties queryPaginationProperties,
 	   @Autowired QueryDatasourcesProperties queryDatasourcesProperties,
+	   @Autowired QueryTenantResolver queryTenantResolver,
 	   @Autowired List<QueryExecutionProvider> queryExecutionProviders) {
 		NamedQueryServiceSpringMybatisImpl searchService = new NamedQueryServiceSpringMybatisImpl(queryStore);
 		searchService.setPaginationProperties(queryPaginationProperties);
 		searchService.setQueryExecutionProvider(queryExecutionProvider(queryDatasourcesProperties, queryExecutionProviders));
+		searchService.setQueryTenantResolver(queryTenantResolver);
 		return searchService;
 	}
 
@@ -170,11 +179,12 @@ public class QueryConfiguration {
 	}
 
 	@Bean
-	Function<ChenileExchange,String[]> queryAuthorities(@Autowired QueryDefinitions queryDefinitions){
+	Function<ChenileExchange,String[]> queryAuthorities(@Autowired QueryDefinitions queryDefinitions,
+			@Autowired QueryTenantResolver queryTenantResolver){
 		return (exchange) -> {
 			String queryName = exchange.getHeader("queryName",String.class);
 			if (queryName == null) return null;
-			QueryMetadata data = queryDefinitions.retrieve(queryName);
+			QueryMetadata data = queryDefinitions.retrieve(queryName, queryTenantResolver.resolveTenant());
 			if (data == null) return null;
 			return data.getAcls();
 		};

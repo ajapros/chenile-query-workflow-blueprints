@@ -46,3 +46,16 @@ And the REST response key "numRowsReturned" is "0"
 And the REST response key "currentPage" is "1"
 And the REST response key "maxRows" is "30"
 And the REST response key "maxPages" is "2"
+
+Scenario: Missing tenant without default tenant fails
+When I POST a REST request to URL "/q/students" with payload
+"""
+{
+	"filters" :{
+		"name": "ja"
+	}
+}
+"""
+Then the http status code is 400
+And the top level code is 400
+And success is false

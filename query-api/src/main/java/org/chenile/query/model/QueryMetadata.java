@@ -17,6 +17,7 @@ public class QueryMetadata extends BaseEntity {
 
     private String id;
     private String name; // the externally visible name for this query
+    private String tenantId; // optional tenant/client override for this query
 
     public String getDescription() {
         return description;
@@ -146,6 +147,14 @@ public class QueryMetadata extends BaseEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
     }
 
     public boolean isToDoList() {

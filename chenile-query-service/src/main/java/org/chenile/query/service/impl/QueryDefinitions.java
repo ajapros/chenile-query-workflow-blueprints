@@ -10,7 +10,9 @@ import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Reads the query definitions from a JSON file that has been passed to it.
@@ -20,6 +22,7 @@ import java.util.List;
 public class QueryDefinitions extends BaseQueryStore{
 	private final Logger logger = LoggerFactory.getLogger(QueryDefinitions.class);
 	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final Map<String, Map<String, QueryMetadata>> tenantStore = new HashMap<>();
 	public QueryDefinitions(Resource[] queryDefinitionFiles) throws IOException {
 		for (Resource file: queryDefinitionFiles ) {
 			processFile(file);
@@ -29,17 +32,52 @@ public class QueryDefinitions extends BaseQueryStore{
 		String content = file.getContentAsString(Charset.defaultCharset());			
 		List<QueryMetadata> queries  = objectMapper.readValue(content, new TypeReference<List<QueryMetadata>>() {} );
 		for (QueryMetadata qm: queries) {
-			store.put(qm.getName(), qm);
-			logger.debug("Discovered name:" + qm.getName());
+			String tenantId = normalize(qm.getTenantId());
+			if (tenantId == null) {
+				store.put(qm.getName(), qm);
+				logger.debug("Discovered name:" + qm.getName());
+			} else {
+				tenantStore.computeIfAbsent(tenantId, key -> new HashMap<>()).put(qm.getName(), qm);
+				logger.debug("Discovered tenant:" + tenantId + " name:" + qm.getName());
+			}
 		}
 	}
 
 	public List<QueryMetadata> getAllDiscoveredQueryDefinitions() {
-		return List.copyOf(new ArrayList<>(store.values()));
+		List<QueryMetadata> allDefinitions = new ArrayList<>(store.values());
+		for (Map<String, QueryMetadata> tenantQueries : tenantStore.values()) {
+			allDefinitions.addAll(tenantQueries.values());
+		}
+		return List.copyOf(allDefinitions);
 	}
 
 	@Override
 	public QueryMetadata retrieveQueryIdFromStore(String queryId) {
 		return store.get(queryId);
+	}
+
+	@Override
+	public QueryMetadata retrieve(String queryId) {
+		return store.get(queryId);
+	}
+
+	@Override
+	public QueryMetadata retrieve(String queryId, String tenantId) {
+		String normalizedTenantId = normalize(tenantId);
+		if (normalizedTenantId != null) {
+			Map<String, QueryMetadata> tenantQueries = tenantStore.get(normalizedTenantId);
+			if (tenantQueries != null && tenantQueries.containsKey(queryId)) {
+				return tenantQueries.get(queryId);
+			}
+		}
+		return retrieve(queryId);
+	}
+
+	private String normalize(String value) {
+		if (value == null) {
+			return null;
+		}
+		String normalized = value.trim();
+		return normalized.isEmpty() ? null : normalized;
 	}
 }

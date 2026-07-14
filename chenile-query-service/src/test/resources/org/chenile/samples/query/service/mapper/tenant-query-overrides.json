@@ -1,0 +1,30 @@
+[
+  {
+    "id": "Student.getAll",
+    "name": "tenant-overridden",
+    "description": "Base query definition",
+    "columnMetadata": {},
+    "acls": ["BASE_QUERY_READ"],
+    "paginated": true,
+    "sortable": true
+  },
+  {
+    "tenantId": "tenant1",
+    "id": "tenant1.Student.getAll",
+    "name": "tenant-overridden",
+    "description": "Tenant 1 query definition",
+    "columnMetadata": {},
+    "acls": ["TENANT1_QUERY_READ"],
+    "paginated": true,
+    "sortable": true
+  },
+  {
+    "tenantId": " tenant2 ",
+    "id": "tenant2.Student.getAll",
+    "name": "tenant-only",
+    "description": "Tenant 2 only query definition",
+    "columnMetadata": {},
+    "acls": ["TENANT2_QUERY_READ"],
+    "paginated": false
+  }
+]

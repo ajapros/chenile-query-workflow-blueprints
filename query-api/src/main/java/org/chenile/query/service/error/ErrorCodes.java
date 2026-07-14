@@ -4,7 +4,8 @@ public enum ErrorCodes {
 	COUNT_QUERY_DOES_NOT_RETURN_INT("Q720"),
 	QUERY_ID_NOT_FOUND("Q700"),
 	CANNOT_EXECUTE_QUERY("Q721"),
-	CANNOT_EXECUTE_COUNT_QUERY("Q722");
+	CANNOT_EXECUTE_COUNT_QUERY("Q722"),
+	MISSING_TENANT("Q723");
 	private final String subError;
 	private ErrorCodes(String subError) {
 		this.subError = subError;

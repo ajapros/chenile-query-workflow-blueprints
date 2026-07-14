@@ -73,6 +73,99 @@ And the REST response key "currentPage" is "1"
 And the REST response key "maxRows" is "30"
 And the REST response key "maxPages" is "2"
 
+Scenario: Tenant-specific query definition overrides base query for same external name
+When I construct a REST request with header "x-chenile-tenant-id" and value "tenant1"
+When I POST a REST request to URL "/q/tenant-overridden" with payload
+"""
+{
+	"sortCriteria" :[
+		{"name":"name","ascendingOrder": true}
+	],
+	"pageNum": 1,
+	"numRowsInPage": 20
+}
+"""
+Then the http status code is 200
+And the top level code is 200
+And success is true
+And the REST response key "numRowsReturned" is "10"
+And the REST response key "maxRows" is "10"
+And the REST response key "list[0].row.name" is "Brijesh"
+And the REST response key "list[0].row.id" is "30"
+
+Scenario: Tenant without query override falls back to base query definition
+When I construct a REST request with header "x-chenile-tenant-id" and value "tenant2"
+When I POST a REST request to URL "/q/tenant-overridden" with payload
+"""
+{
+	"sortCriteria" :[
+		{"name":"name","ascendingOrder": true}
+	],
+	"pageNum": 1,
+	"numRowsInPage": 20
+}
+"""
+Then the http status code is 200
+And the top level code is 200
+And success is true
+And the REST response key "numRowsReturned" is "20"
+And the REST response key "maxRows" is "30"
+And the REST response key "list[0].row.name" is "Akash"
+And the REST response key "list[0].row.id" is "105"
+
+Scenario: Tenant-specific query override uses default tenant when header missing
+When I POST a REST request to URL "/q/tenant-overridden" with payload
+"""
+{
+	"sortCriteria" :[
+		{"name":"name","ascendingOrder": true}
+	],
+	"pageNum": 1,
+	"numRowsInPage": 20
+}
+"""
+Then the http status code is 200
+And the top level code is 200
+And success is true
+And the REST response key "numRowsReturned" is "10"
+And the REST response key "maxRows" is "10"
+And the REST response key "list[0].row.name" is "Brijesh"
+And the REST response key "list[0].row.id" is "30"
+
+Scenario: Tenant-specific query override uses default tenant when header is empty
+When I construct a REST request with header "x-chenile-tenant-id" and value ""
+When I POST a REST request to URL "/q/tenant-overridden" with payload
+"""
+{
+	"sortCriteria" :[
+		{"name":"name","ascendingOrder": true}
+	],
+	"pageNum": 1,
+	"numRowsInPage": 20
+}
+"""
+Then the http status code is 200
+And the top level code is 200
+And success is true
+And the REST response key "numRowsReturned" is "10"
+And the REST response key "maxRows" is "10"
+And the REST response key "list[0].row.name" is "Brijesh"
+And the REST response key "list[0].row.id" is "30"
+
+Scenario: Unknown tenant does not fall back to default tenant
+When I construct a REST request with header "x-chenile-tenant-id" and value "missing"
+When I POST a REST request to URL "/q/students" with payload
+"""
+{
+	"filters" :{
+		"name": "ja"
+	}
+}
+"""
+Then the http status code is 500
+And the top level code is 500
+And success is false
+
 Scenario Outline: Test Likes query
 When I construct a REST request with header "x-chenile-tenant-id" and value "<tenantId>"
 When I POST a REST request to URL "/q/students" with payload

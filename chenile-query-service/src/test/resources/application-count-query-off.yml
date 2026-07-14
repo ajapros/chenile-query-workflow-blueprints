@@ -1,4 +1,5 @@
 query:
+  defaultTenantId: ''
   pagination:
     countQueryEnabled: false
   datasources:

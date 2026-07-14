@@ -45,7 +45,7 @@ public abstract class AbstractSearchServiceImpl implements SearchService<Map<Str
 
 	public final SearchResponse search(SearchRequest<Map<String, Object>> searchRequest) {
 
-		QueryMetadata queryMetadata = queryStore.retrieve(searchRequest.getQueryName());
+		QueryMetadata queryMetadata = retrieveQueryMetadata(searchRequest.getQueryName());
 
 		if (queryMetadata == null){
 			logger.error("Query metadata not found for queryName: {}", searchRequest.getQueryName());
@@ -63,6 +63,10 @@ public abstract class AbstractSearchServiceImpl implements SearchService<Map<Str
 		SearchResponse searchResponse = makeSearchResponse(queryMetadata, esr);
 		searchResponse = doSearch(esr, searchResponse, queryMetadata);
 		return searchResponse;
+	}
+
+	protected QueryMetadata retrieveQueryMetadata(String queryName) {
+		return queryStore.retrieve(queryName);
 	}
 
 
