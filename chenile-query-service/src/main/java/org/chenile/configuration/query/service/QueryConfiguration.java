@@ -4,12 +4,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 
 import javax.sql.DataSource;
 
 import org.apache.ibatis.session.SqlSessionFactory;
+import org.chenile.query.service.catalog.JdbcQueryCatalog;
+import org.chenile.query.service.catalog.QueryCatalogSnapshot;
 import org.chenile.core.context.ChenileExchange;
 import org.chenile.core.context.ContextContainer;
 import org.chenile.query.model.QueryMetadata;
@@ -24,7 +27,10 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import tools.jackson.databind.json.JsonMapper;
 import org.chenile.query.service.QueryStore;
 import org.chenile.query.service.SearchService;
 import org.chenile.query.service.impl.MybatisQueryExecutionProvider;
@@ -41,14 +47,81 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 public class QueryConfiguration {
 
 	@Value("${query.mapperFiles:}")
-	private Resource[] mapperFiles;
+	private String mapperFilePatterns;
 	
-	@Value("${query.definitionFiles}")
-	private Resource[] queryDefinitionFiles;
+	@Value("${query.definitionFiles:}")
+	private String queryDefinitionFilePatterns;
 	
-		@Bean("queryDefinitions") QueryDefinitions queryDefinitions() throws IOException{
-			return new QueryDefinitions(queryDefinitionFiles);
+	@Bean
+	@ConfigurationProperties(prefix = "query.catalog.jdbc")
+	QueryCatalogJdbcProperties queryCatalogJdbcProperties() {
+		return new QueryCatalogJdbcProperties();
+	}
+
+	@Bean("queryJsonMapper")
+	JsonMapper queryJsonMapper() {
+		return JsonMapper.builder().build();
+	}
+
+	@Bean("queryCatalogSnapshot")
+	QueryCatalogSnapshot queryCatalogSnapshot(@Autowired QueryCatalogJdbcProperties catalogProperties,
+			@Autowired ApplicationContext applicationContext,
+			@Autowired @Qualifier("queryJsonMapper") JsonMapper jsonMapper) {
+		Resource[] mapperFiles = resolveResources(mapperFilePatterns, "query.mapperFiles");
+		Resource[] queryDefinitionFiles = resolveResources(queryDefinitionFilePatterns, "query.definitionFiles");
+		if (!catalogProperties.isEnabled()) {
+			if (queryDefinitionFiles.length == 0) {
+				throw new IllegalStateException("query.definitionFiles is required when the JDBC query catalog is disabled");
+			}
+			return QueryCatalogSnapshot.classpathOnly(mapperFiles, queryDefinitionFiles);
 		}
+		String beanName = catalogProperties.getDataSource();
+		if (beanName == null || beanName.isBlank()) {
+			throw new IllegalStateException("query.catalog.jdbc.dataSource is required when the JDBC catalog is enabled");
+		}
+		if (catalogProperties.getBaseScope() == null || catalogProperties.getBaseScope().isBlank()) {
+			throw new IllegalStateException("query.catalog.jdbc.baseScope is required when the JDBC catalog is enabled");
+		}
+		DataSource catalogDataSource;
+		try {
+			catalogDataSource = applicationContext.getBean(beanName, DataSource.class);
+		} catch (Exception e) {
+			throw new IllegalStateException("JDBC query catalog datasource bean '" + beanName + "' is unavailable", e);
+		}
+		JdbcQueryCatalog catalog = new JdbcQueryCatalog(catalogDataSource, catalogProperties, jsonMapper);
+		return QueryCatalogSnapshot.databasePreferred(mapperFiles, queryDefinitionFiles,
+				catalog.loadMappers(), catalog.loadDefinitions());
+	}
+
+	private Resource[] resolveResources(String patterns, String propertyName) {
+		if (patterns == null || patterns.isBlank()) {
+			return new Resource[0];
+		}
+		try {
+			PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+			return Arrays.stream(patterns.split(","))
+					.map(String::trim)
+					.filter(pattern -> !pattern.isEmpty())
+					.flatMap(pattern -> Arrays.stream(resourcesFor(resolver, pattern, propertyName)))
+					.toArray(Resource[]::new);
+		} catch (IllegalStateException exception) {
+			throw exception;
+		}
+	}
+
+	private Resource[] resourcesFor(PathMatchingResourcePatternResolver resolver, String pattern, String propertyName) {
+		try {
+			return resolver.getResources(pattern);
+		} catch (IOException exception) {
+			throw new IllegalStateException("Unable to resolve " + propertyName + " resource pattern '" + pattern + "'", exception);
+		}
+	}
+
+	@Bean("queryDefinitions") QueryDefinitions queryDefinitions(
+			@Autowired @Qualifier("queryCatalogSnapshot") QueryCatalogSnapshot catalogSnapshot,
+			@Autowired @Qualifier("queryJsonMapper") JsonMapper jsonMapper) throws IOException{
+		return new QueryDefinitions(catalogSnapshot.definitionFiles(), catalogSnapshot.databaseDefinitions(), jsonMapper);
+	}
 
     @Bean
     @ConfigurationProperties(prefix = "query")
@@ -120,12 +193,18 @@ public class QueryConfiguration {
 
     @Bean
 	@ConditionalOnProperty(name = "query.mybatis.enabled", havingValue = "true", matchIfMissing = true)
-    SqlSessionFactory sqlSessionFactory(@Autowired @Qualifier("queryDatasource") DataSource queryDataSource)
+    SqlSessionFactory sqlSessionFactory(@Autowired @Qualifier("queryDatasource") DataSource queryDataSource,
+			@Autowired @Qualifier("queryCatalogSnapshot") QueryCatalogSnapshot catalogSnapshot)
             throws Exception {
 		SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
 		factoryBean.setDataSource(queryDataSource);
-		factoryBean.setMapperLocations(mapperFiles);
-		return factoryBean.getObject();
+		factoryBean.setMapperLocations(catalogSnapshot.mapperFiles());
+		SqlSessionFactory sqlSessionFactory = factoryBean.getObject();
+		if (sqlSessionFactory == null) {
+			throw new IllegalStateException("Unable to create MyBatis SqlSessionFactory");
+		}
+		catalogSnapshot.validateDatabaseDefinitions(sqlSessionFactory.getConfiguration());
+		return sqlSessionFactory;
 	}
 
 	@Bean("mybatisQueryExecutionProvider")

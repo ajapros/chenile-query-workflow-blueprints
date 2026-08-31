@@ -1,11 +1,11 @@
 package org.chenile.query.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.chenile.query.model.QueryMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -21,25 +21,49 @@ import java.util.Map;
  */
 public class QueryDefinitions extends BaseQueryStore{
 	private final Logger logger = LoggerFactory.getLogger(QueryDefinitions.class);
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final JsonMapper jsonMapper;
 	private final Map<String, Map<String, QueryMetadata>> tenantStore = new HashMap<>();
 	public QueryDefinitions(Resource[] queryDefinitionFiles) throws IOException {
+		this(queryDefinitionFiles, List.of(), JsonMapper.builder().build());
+	}
+
+	/**
+	 * Database definitions are applied after classpath definitions so a matching
+	 * base or tenant-specific name is an intentional startup-time override.
+	 */
+	public QueryDefinitions(Resource[] queryDefinitionFiles, List<QueryMetadata> databaseDefinitions) throws IOException {
+		this(queryDefinitionFiles, databaseDefinitions, JsonMapper.builder().build());
+	}
+
+	public QueryDefinitions(Resource[] queryDefinitionFiles, List<QueryMetadata> databaseDefinitions,
+			JsonMapper jsonMapper) throws IOException {
+		this.jsonMapper = jsonMapper;
 		for (Resource file: queryDefinitionFiles ) {
 			processFile(file);
+		}
+		for (QueryMetadata definition : databaseDefinitions) {
+			addOrReplace(definition);
 		}
 	}
 	private void processFile(Resource file) throws IOException {
 		String content = file.getContentAsString(Charset.defaultCharset());			
-		List<QueryMetadata> queries  = objectMapper.readValue(content, new TypeReference<List<QueryMetadata>>() {} );
+		List<QueryMetadata> queries  = jsonMapper.readValue(content, new TypeReference<List<QueryMetadata>>() {} );
 		for (QueryMetadata qm: queries) {
-			String tenantId = normalize(qm.getTenantId());
-			if (tenantId == null) {
-				store.put(qm.getName(), qm);
-				logger.debug("Discovered name:" + qm.getName());
-			} else {
-				tenantStore.computeIfAbsent(tenantId, key -> new HashMap<>()).put(qm.getName(), qm);
-				logger.debug("Discovered tenant:" + tenantId + " name:" + qm.getName());
-			}
+			addOrReplace(qm);
+		}
+	}
+
+	public void addOrReplace(QueryMetadata queryMetadata) {
+		if (queryMetadata == null || normalize(queryMetadata.getName()) == null) {
+			throw new IllegalArgumentException("Query definition name is required");
+		}
+		String tenantId = normalize(queryMetadata.getTenantId());
+		if (tenantId == null) {
+			store.put(queryMetadata.getName(), queryMetadata);
+			logger.debug("Discovered name:" + queryMetadata.getName());
+		} else {
+			tenantStore.computeIfAbsent(tenantId, key -> new HashMap<>()).put(queryMetadata.getName(), queryMetadata);
+			logger.debug("Discovered tenant:" + tenantId + " name:" + queryMetadata.getName());
 		}
 	}
 
