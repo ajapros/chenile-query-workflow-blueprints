@@ -21,9 +21,14 @@ import org.chenile.workflow.service.testprefix.issues.CloseIssueAction;
 import org.chenile.workflow.service.testprefix.issues.Issue;
 import org.chenile.workflow.service.testprefix.issues.IssueEntityStore;
 import org.chenile.workflow.service.testprefix.issues.ResolveIssueAction;
+import org.chenile.workflow.service.testprefix.issues.custom.CustomIssueEntityStore;
+import org.chenile.workflow.service.testprefix.issues.region.ApacIssueEntityStore;
 import org.chenile.workflow.service.testprefix.issues.tenant0.Tenant0AssignedPostSaveHook;
 import org.chenile.workflow.service.testprefix.issues.tenant0.Tenant0AssignIssueAction;
 import org.chenile.workflow.service.testprefix.issues.tenant0.Tenant0IssueAssignedPostSaveHook;
+import org.chenile.workflow.service.testprefix.issues.tenant0.Tenant0IssueEntityStore;
+import org.chenile.workflow.service.store.EntityStoreSelectionStrategy;
+import org.chenile.core.context.ContextContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,7 +36,10 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.util.StringUtils;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.Optional;
 
 @Configuration
 @PropertySource("classpath:org/chenile/workflow/service/testprefix/TestWorkflowService.properties")
@@ -68,6 +76,24 @@ public class ServiceTestConfig extends SpringBootServletInitializer{
 	
 	@Bean IssueEntityStore issueEntityStore() {
 		return new IssueEntityStore();
+	}
+
+	@Bean Tenant0IssueEntityStore tenant0IssueEntityStore() {
+		return new Tenant0IssueEntityStore();
+	}
+
+	@Bean ApacIssueEntityStore apacIssueEntityStore() {
+		return new ApacIssueEntityStore();
+	}
+
+	@Bean CustomIssueEntityStore customIssueEntityStore() {
+		return new CustomIssueEntityStore();
+	}
+
+	@Bean EntityStoreSelectionStrategy appTypeEntityStoreSelectionStrategy() {
+		return baseBeanName -> "custom".equals(ContextContainer.getInstance().getAppType())
+				? Optional.of("custom" + StringUtils.capitalize(baseBeanName))
+				: Optional.empty();
 	}
 	
 	@Bean StateEntityServiceImpl<Issue> _issueStateEntityService_(

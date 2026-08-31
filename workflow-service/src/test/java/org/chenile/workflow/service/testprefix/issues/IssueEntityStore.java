@@ -7,11 +7,20 @@ import org.chenile.utils.entity.service.EntityStore;
 
 public class IssueEntityStore implements EntityStore<Issue>{
 	private Map<String, Issue> theStore = new HashMap<>();
-	public static int counter = 1;
+	private final String idPrefix;
+	private int counter = 1;
+
+	public IssueEntityStore() {
+		this("");
+	}
+
+	protected IssueEntityStore(String idPrefix) {
+		this.idPrefix = idPrefix;
+	}
 	@Override
 	public void store(Issue entity) {
 		if (entity.getId() == null) {
-			entity.setId(counter++ + "");
+			entity.setId(idPrefix + counter++);
 		}
 		theStore.put(entity.getId(), entity);		
 	}
